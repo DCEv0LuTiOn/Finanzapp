@@ -3,7 +3,8 @@ import sys
 from contextlib import closing
 from dtos import *
 
-def execute_select_dto_list(sql:str,dto_class): # sql und den Datentype bzw. die DTO Klasse
+
+def execute_select_dto_list(sql:str,dto_class) -> list[object]: # sql und den Datentype bzw. die DTO Klasse
     with sqlite3.connect(__db_path) as connection:
         connection.execute("PRAGMA foreign_keys = ON;") # wird von sqlight3 benötigt das forgein_keys funktionieren
         connection.row_factory = sqlite3.Row            # wird von sqlight3 benötigt das man spaltennamen im cursor mit cursor.description rauslesen kann
@@ -18,7 +19,7 @@ def execute_select_dto_list(sql:str,dto_class): # sql und den Datentype bzw. die
                                                     # => namen müssen gleich sein
             return results
 
-def execute_select_dto(sql:str,dto_class): # sql und den Datentype bzw. die DTO Klasse
+def execute_select_dto(sql:str,dto_class) -> object: # sql und den Datentype bzw. die DTO Klasse
     with sqlite3.connect(__db_path) as connection:
         connection.execute("PRAGMA foreign_keys = ON;") 
         connection.row_factory = sqlite3.Row
@@ -31,32 +32,94 @@ def execute_select_dto(sql:str,dto_class): # sql und den Datentype bzw. die DTO 
                                                     # anhand der spalten namen von select und DTO Variablen namen 
                                                     # => namen müssen gleich sein
 
-def execute_select_value(sql:str): # sql und den Datentype bzw. die DTO Klasse
+def execute_select_value(sql:str) -> str|int|float: # sql und den Datentype bzw. die DTO Klasse
     with sqlite3.connect(__db_path) as connection:  # Connection automatisch schließen
         connection.execute("PRAGMA foreign_keys = ON;")
         connection.row_factory = sqlite3.Row
         with closing(connection.cursor()) as cursor:
             cursor.execute(sql)
-            row = cursor.fetchone() # alle daten vom select holen
+            row = cursor.fetchone() # daten vom select holen
             return row[0]
-
-def execcute_insert_dto():
-    pass
-
-def execute_insert_single(sql:str,value):
-    with sqlite3.connect(__db_path) as connection:  # Connection automatisch schließen
-        connection.row_factory = sqlite3.Row
+        
+def execute_insert_dto_list(dtos:list[object]):
+    with sqlite3.connect(__db_path) as connection:
+        connection.execute("PRAGMA foreign_keys = ON;")
         with closing(connection.cursor()) as cursor:
-            cursor.execute(sql)
+            try:
+                for dto in dtos:
+                    fields_to_insert = []
+                    placeholders = []
+                    values = {}
+                    for key, value in dto.__dict__.items(): # variablen aus DTO holen
+                        if key != "ID" and value is not None:
+                            fields_to_insert.append(key)
+                            placeholders.append(":" + key)
+                            values[key] = value
 
-def execute_insert_list(sql:str,values:list[list]):
-    pass
+                    table_name = dto.__class__.__name__[:dto.__class__.__name__.find("DTO")] # Holt sich aus der DTO den Namen der Klasse und schneidet DTO ab am ende
+                    sql = f"INSERT INTO {table_name} ({', '.join(fields_to_insert)}) VALUES ({', '.join(placeholders)})"
+                    cursor.execute(sql, values)
+                connection.commit
+            except sqlite3.DatabaseError as e:
+                connection.rollback()
+                print("DB Fehler:", e)
+                raise
+
+def execute_insert_dto(dto:object):
+    with sqlite3.connect(__db_path) as connection:
+        connection.execute("PRAGMA foreign_keys = ON;")
+        with closing(connection.cursor()) as cursor:
+            try:
+                fields_to_insert = []
+                placeholders = []
+                values = {}
+                for key, value in dto.__dict__.items(): # variablen aus DTO holen
+                    if key != "ID" and value is not None:
+                        fields_to_insert.append(key)
+                        placeholders.append(":" + key)
+                        values[key] = value
+
+                table_name = dto.__class__.__name__[:dto.__class__.__name__.find("DTO")] # Holt sich aus der DTO den Namen der Klasse und schneidet DTO ab am ende
+                sql = f"INSERT INTO {table_name} ({', '.join(fields_to_insert)}) VALUES ({', '.join(placeholders)})"
+                cursor.execute(sql, values)
+                connection.commit
+            except sqlite3.DatabaseError as e:
+                connection.rollback()
+                print("DB Fehler:", e)
+                raise
+
+def execute_update_dto_list():
+    with sqlite3.connect(__db_path) as connection:
+        connection.execute("PRAGMA foreign_keys = ON;")
+        with closing(connection.cursor()) as cursor:
+            try:
+                pass
+                # Noch zu tun
+                connection.commit
+            except sqlite3.DatabaseError as e:
+                connection.rollback()
+                print("DB Fehler:", e)
+                raise
+            
+def execute_update_dto():
+    with sqlite3.connect(__db_path) as connection:
+        connection.execute("PRAGMA foreign_keys = ON;")
+        with closing(connection.cursor()) as cursor:
+            try:
+                pass
+                # Noch zu tun
+                connection.commit
+            except sqlite3.DatabaseError as e:
+                connection.rollback()
+                print("DB Fehler:", e)
+                raise
 
 def get_users():
     sql = "SELECT * FROM kontoinhaber"
     users = execute_select_dto_list(sql,KontoinhaberDTO)
     user = execute_select_dto(sql,KontoinhaberDTO)
     # value_select = execute_select_value("SELECT id FROM user where id = '1'")
+    execute_insert_dto(users[0])
     print(users)
 
 def __create_Database():
