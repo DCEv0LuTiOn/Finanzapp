@@ -149,4 +149,5 @@ def __create_Database():
 __db_path = "Database.db"
 
 if __name__ == "__main__":
-    __create_Database()
+    # __create_Database()
+    pass
