@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <header>
+        <title>Sign Up</title>
+        <meta charset="utf-8">
+    </header>
+
+    <style> 
+        body{
+            background-color: #c1ddff;
+            margin: 0;
+            display:flex;
+            justify-content: center; /* horizontal zentrieren */
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .signup-container{
+            display: flex;
+            flex-direction: column;
+            flex: 0.300;  /* ist dafür verantwortlich, dass die Steuerelemente in der Klasse am rechten Rand aligned sind*/
+            width: 100px;
+            border-width:2px;
+            padding: 10px;
+            background-color: white; 
+            border-style:solid;
+            border-color:white;
+            border-radius: 10px;
+            margin-top: 200px; /**/
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+            flex-direction: column; /* Untereinander anordnen */
+            /* gap: 10px;  */
+        }
+        .div-vorname{
+            display: flex;
+            align-items: center;
+            width: 100px; 
+            gap:24px;
+            margin-bottom: 5px;
+        }
+       .div-nachname{
+            display: flex;
+            align-items: center;
+            width: 100px; 
+            gap:11px;
+            margin-bottom: 5px;
+        } 
+        .div-email{
+            display: flex;
+            align-items: center;
+            width: 100px; 
+            gap:50px;
+            margin-bottom: 20px;
+        }
+        .div-passwort{
+            display: flex;
+            align-items: center;
+            width: 100px; 
+            gap:23px;
+            margin-bottom: 5px;
+        }
+        .div-bestpasswort{
+            display: flex;
+            align-items: center;
+            width: 100px; 
+            gap:10px;
+            margin-bottom: 5px;
+        }
+        .div-button{
+            display: flex;
+            justify-content: flex-end; /*zeigt die Button auf der rechten Seite des log in divs an.*/
+            align-items: center;
+            gap:5px;
+        }
+    </style>
+    <body style="align-content: center;">
+            <div class="signup-container">
+                <label>Sigh Up:</label> 
+                <br>
+
+                <div class="div-vorname">
+                    <label>Vorname:</label> 
+                    <input type="text" name="txt_vorname">
+                </div>
+
+                <div class="div-nachname">
+                    <label>Nachname:</label> 
+                    <input type="text" name="txt_nachname">
+                </div>
+
+                <div class="div-email">
+                    <label>eMail:</label> 
+                    <input type="text" name="txt_email">
+                </div>
+
+                <div class="div-passwort">
+                    <label>Passwort:</label>
+                    <input type="text" name="txt_password" >
+                </div>
+
+                <div class="div-bestpasswort" class>
+                    <label>bestätigung Passwort:</label>
+                    <input type="text" name="txt_best_password" >
+                </div>
+
+                <div class="div-button">
+                    <button>Sign Up</button>
+                </div>
+            </div>
+    </body>
+</html>
