@@ -14,6 +14,12 @@ def login():
 def registration():
     return render_template("registration.html")
 
+
+#Menue ausliefern
+@app.route("/menue")
+def menue():
+    return render_template("menue.html")
+
 # # Alle Benutzer abrufen
 # @app.route("/api/users", methods=["GET"])
 # def get_users():

@@ -15,95 +15,81 @@
             font-family: Arial, sans-serif;
         }
         .signup-container{
+            width: 300px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            margin-top: 200px;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            flex: 0.300;  /* ist dafür verantwortlich, dass die Steuerelemente in der Klasse am rechten Rand aligned sind*/
-            width: 100px;
-            border-width:2px;
-            padding: 10px;
-            background-color: white; 
-            border-style:solid;
-            border-color:white;
-            border-radius: 10px;
-            margin-top: 200px; /**/
-            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
-            flex-direction: column; /* Untereinander anordnen */
-            /* gap: 10px;  */
+            gap: 10px;
         }
-        .div-vorname{
+
+        .div-btn-style{
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-style{
+            background-color:white;
+            border: 1px solid;
+            border-color: black; 
+            
+        }
+
+        .form-row{
             display: flex;
             align-items: center;
-            width: 100px; 
-            gap:24px;
-            margin-bottom: 5px;
+            gap: 10px;
         }
-       .div-nachname{
-            display: flex;
-            align-items: center;
-            width: 100px; 
-            gap:11px;
-            margin-bottom: 5px;
-        } 
-        .div-email{
-            display: flex;
-            align-items: center;
-            width: 100px; 
-            gap:50px;
-            margin-bottom: 20px;
+
+        .form-row label{
+            width: 80px; /* statische Breite, für sortiertes Layout untereinander */
+            text-align: right;
         }
-        .div-passwort{
-            display: flex;
-            align-items: center;
-            width: 100px; 
-            gap:23px;
-            margin-bottom: 5px;
+
+        .form-row input{
+            flex: 1; /* füllt den restlichen Platz */
         }
-        .div-bestpasswort{
-            display: flex;
-            align-items: center;
-            width: 100px; 
-            gap:10px;
-            margin-bottom: 5px;
+
+        .lbl-info{
+            font-size:small; /*damit die info kleiner Angezeigt wird */
+            color:red;
         }
-        .div-button{
-            display: flex;
-            justify-content: flex-end; /*zeigt die Button auf der rechten Seite des log in divs an.*/
-            align-items: center;
-            gap:5px;
-        }
+    
     </style>
     <body style="align-content: center;">
             <div class="signup-container">
                 <label>Sigh Up:</label> 
-                <br>
-
-                <div class="div-vorname">
+                <label class="lbl-info" name="lblInfo">test</label>         
+                <div class="form-row">
                     <label>Vorname:</label> 
                     <input type="text" name="txt_vorname">
                 </div>
 
-                <div class="div-nachname">
+                <div class="form-row">
                     <label>Nachname:</label> 
                     <input type="text" name="txt_nachname">
                 </div>
 
-                <div class="div-email">
+                <div class="form-row">
                     <label>eMail:</label> 
                     <input type="text" name="txt_email">
                 </div>
 
-                <div class="div-passwort">
+                <div class="form-row">
                     <label>Passwort:</label>
                     <input type="text" name="txt_password" >
                 </div>
 
-                <div class="div-bestpasswort" class>
-                    <label>bestätigung Passwort:</label>
+                <div class="form-row" class>
+                    <label>w.Passwort:</label>
                     <input type="text" name="txt_best_password" >
                 </div>
 
-                <div class="div-button">
-                    <button>Sign Up</button>
+                <div class="div-btn-style">
+                    <button class="btn-style">Sign Up</button>
                 </div>
             </div>
     </body>

@@ -1,129 +1,135 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>Diagramme</title>
-<meta charset="utf-8">
+    <head>
+        <title>Diagramme</title>
+    <meta charset="utf-8">
 
-<style> 
-body{
-    background-color: #c1ddff;
-    margin: 0;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    font-family: Arial, sans-serif;
-}
+        <style> 
+            body{
+                background-color: #c1ddff;
+                margin: 0;
+                display:flex;
+                justify-content: center;
+                align-items: center;
+                font-family: Arial, sans-serif;
+            }
 
-.main-container{
-    display:flex;
-    flex-direction:column;
-    gap:25px;
-}
+            .main-container{
+                display:flex;
+                flex-direction:column;
+                gap:25px;
+                margin-top: 5%;
+            }
 
-/* Filterbereich */
+            .btn-style{
+                background-color:white;
+                border: 1px solid;
+                border-color: black; 
+            }
+            /* Filterbereich */
 
-.filter-container{
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    box-shadow:5px 5px 15px rgba(0,0,0,0.3);
-    display:flex;
-    gap:20px;
-    justify-content:center;
-    align-items:center;
-}
+            .filter-container{
+                background:white;
+                padding:15px;
+                border-radius:10px;
+                box-shadow:5px 5px 15px rgba(0,0,0,0.3);
+                display:flex;
+                gap:20px;
+                justify-content:center;
+                align-items:center;
+            }
 
-/* Statistikbereich */
+            /* Statistikbereich */
 
-.stats-container{
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    box-shadow:5px 5px 15px rgba(0,0,0,0.3);
-    display:flex;
-    justify-content:space-around;
-    text-align:center;
-}
+            .stats-container{
+                background:white;
+                padding:20px;
+                border-radius:10px;
+                box-shadow:5px 5px 15px rgba(0,0,0,0.3);
+                display:flex;
+                justify-content:space-around;
+                text-align:center;
+            }
 
-.stat-box{
-    padding:10px 20px;
-}
+            .stat-box{
+                padding:10px 20px;
+            }
 
-.stat-title{
-    font-weight:bold;
-    margin-bottom:5px;
-}
+            .stat-title{
+                font-weight:bold;
+                margin-bottom:5px;
+            }
 
-.stat-value{
-    font-size:20px;
-    color:#2c6ed5;
-}
+            .stat-value{
+                font-size:20px;
+                color:#2c6ed5;
+            }
 
-/* Diagrammcontainer */
+            /* Diagrammcontainer */
 
-.menue-container{
-    display: flex;
-    flex-direction: row;
-    gap: 60px;
-    padding: 30px;
-    background-color: white; 
-    border-radius: 10px;
-    box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
-}
+            .menue-container{
+                display: flex;
+                flex-direction: row;
+                gap: 60px;
+                padding: 30px;
+                background-color: white; 
+                border-radius: 10px;
+                box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+            }
 
-.diagram{
-    display:flex;
-    flex-direction: column;
-    align-items: center;
-}
+            .diagram{
+                display:flex;
+                flex-direction: column;
+                align-items: center;
+            }
 
-/* Kuchendiagramm */
+            /* Kuchendiagramm */
 
-.piechart{
-    width:200px;
-    height:200px;
-    border-radius:50%;
-    box-shadow: 5px 5px 15px rgba(0,0,0,0.6);
-    background: conic-gradient(
-        red 0% 25%,
-        blue 25% 60%,
-        yellow 60% 75%,
-        green 75% 100%
-    );
-}
+            .piechart{
+                width:200px;
+                height:200px;
+                border-radius:50%;
+                box-shadow: 5px 5px 15px rgba(0,0,0,0.6);
+                background: conic-gradient(
+                    red 0% 25%,
+                    blue 25% 60%,
+                    yellow 60% 75%,
+                    green 75% 100%
+                );
+            }
 
-/* Balkendiagramm */
+            /* Balkendiagramm */
 
-.bar-container{
-    display:flex;
-    justify-content: space-around;
-    align-items:flex-end;
-    height:200px;
-    border-left:2px solid black;
-    border-bottom:2px solid black;
-    padding:10px;
-    gap:15px;
-    
-}
+            .bar-container{
+                display:flex;
+                justify-content: space-around;
+                align-items:flex-end;
+                height:200px;
+                border-left:2px solid black;
+                border-bottom:2px solid black;
+                padding:10px;
+                gap:15px;
 
-.bar{
-    width:40px;
-    background-color:#4a90e2;
-}
+            }
 
-.bar1{ height:60px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
-.bar2{ height:140px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
-.bar3{ height:90px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
-.bar4{ height:170px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
+            .bar{
+                width:40px;
+                background-color:#4a90e2;
+            }
 
-.label{
-    text-align:center;
-    margin-top:5px;
-}
+            .bar1{ height:60px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
+            .bar2{ height:140px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
+            .bar3{ height:90px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
+            .bar4{ height:170px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
 
-</style>
-</head>
-<body>
+            .label{
+                text-align:center;
+                margin-top:5px;
+            }
+
+        </style>
+    </head>
+    <body>
     <div class="main-container">
 
         <!-- Filter -->
@@ -141,7 +147,7 @@ body{
                 <option>Februar</option>
                 <option>März</option>
             </select>
-            <button>Filter anwenden</button>
+            <button class="btn-style">Filter anwenden</button>
         </div>
         
         <!-- Aktuelle Daten -->
