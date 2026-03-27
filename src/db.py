@@ -1,7 +1,7 @@
 import sqlite3
 import sys
 from contextlib import closing
-from dtos import *
+from src.dtos import *
 
 def get_dto_data(dto:object): # Daten aus dto lesen und zurück geben
     table_name = dto.__class__.__name__[:dto.__class__.__name__.find("DTO")] # Holt sich aus der DTO den Namen der Klasse und schneidet DTO ab am ende
@@ -103,12 +103,9 @@ def execute_update_dtos(dtos:object | list[object]):
             raise
 
 def get_users():
-    sql = "SELECT * FROM kontoinhaber"
+    sql = "SELECT * FROM Kontoinhaber"
     users = execute_select_dto_list(sql,KontoinhaberDTO)
-    user = execute_select_dto(sql,KontoinhaberDTO)
-    # value_select = execute_select_value("SELECT id FROM user where id = '1'")
-    for i in users:
-        print(i)
+    return users
 
 def __create_Database():
     with sqlite3.connect(__db_path) as connection:
@@ -290,7 +287,7 @@ def __insert_test_data():
 
         connection.commit()
 
-__db_path = "Database.db"
+__db_path = "./Database.db"
 
 if __name__ == "__main__":
     # __create_Database()
@@ -298,4 +295,6 @@ if __name__ == "__main__":
     user = [KontoinhaberDTO(ID=4,Vorname="Kevin",Nachname="Test_neu",Email="kevin.mustermax@web.de",Passwort="abc123")]
     # execute_insert_dtos(user)
     # execute_update_dtos(user)
-    get_users()
+    users = get_users()
+    for user in users:
+        print(user)

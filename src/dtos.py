@@ -1,10 +1,18 @@
 from dataclasses import dataclass
-from datetime import date
 from typing import Optional
 
 @dataclass
-class KontoinhaberDTO: # Datentransfer Objekt
-    # Optional ist wenn felder nicht befüllt werden sind sie None
+class BankDTO:
+    BLZ: Optional[str] = None
+    Name: Optional[str] = None
+
+@dataclass
+class WaehrungDTO:
+    ID: Optional[int] = None
+    Waehrung: Optional[str] = None
+
+@dataclass
+class KontoinhaberDTO:
     ID: Optional[int] = None
     Vorname: Optional[str] = None
     Nachname: Optional[str] = None
@@ -13,23 +21,13 @@ class KontoinhaberDTO: # Datentransfer Objekt
 
 @dataclass
 class KontoDTO:
-    IBAN: Optional[int] = None
+    IBAN: Optional[str] = None
     BIC: Optional[str] = None
-    Bank_Name: Optional[str] = None
+    BLZ: Optional[str] = None
     Konto_Name: Optional[str] = None  
     Kontoinhaber_ID: Optional[int] = None
     Saldo: Optional[float] = None
-    Waehrung: Optional[str] = None
-
-@dataclass
-class KontoDTO:
-    IBAN: Optional[int] = None
-    BIC: Optional[str] = None
-    Bank_Name: Optional[str] = None
-    Konto_Name: Optional[str] = None  
-    Kontoinhaber_ID: Optional[int] = None
-    Saldo: Optional[float] = None
-    Waehrung: Optional[str] = None
+    Waehrung_ID: Optional[int] = None
 
 @dataclass
 class BuchungsartDTO:
@@ -56,3 +54,12 @@ class TransaktionDTO:
     Kategorie_ID: Optional[int] = None
     Bemerkung: Optional[str] = None
 
+# @dataclass
+# class KontoViewDTO:
+#     IBAN: Optional[str] = None
+#     BIC: Optional[str] = None
+#     Bank_Name: Optional[str] = None
+#     Konto_Name: Optional[str] = None  
+#     Kontoinhaber_Name: Optional[str] = None
+#     Saldo: Optional[float] = None
+#     Waehrung: Optional[str] = None
