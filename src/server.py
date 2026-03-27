@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect,url_for 
+from flask import Flask, render_template, request, redirect,url_for, session
+from functools import wraps  # sorgt dafür, dass die Route ihren echten Namen behält für decorator benötigt
 from src import db
 from src.dtos import *
 
@@ -6,6 +7,7 @@ from src.dtos import *
 app = Flask(
     __name__
 )
+app.secret_key = "supersecretkey"  # wichtig für session das diese sicher ist
 # app = Flask(
 #     __name__,
 #     template_folder="templates",
@@ -13,7 +15,26 @@ app = Flask(
 # )
 
 
-# Startseite ausliefern
+
+# Decorator
+def login_required(route_function):  # das ist die Funktion (Route), die geschützt werden soll
+    @wraps(route_function)  # wichtig damit Flask die Route korrekt erkennt
+    def wrapper_function(*args, **kwargs):  
+        # *args = alle normalen Positionswerte (z.B. /user/5 → 5 wird hier reingepackt)
+        #        → wird als Liste/Tupel weitergegeben, ohne Namen
+        #
+        # **kwargs = alle benannten Werte (z.B. /user?id=5 oder Flask-Parameter wie id=5)
+        #          → wird als Wörterbuch (dict) weitergegeben: {"id": 5}
+        #
+        # Flask nutzt das automatisch, damit deine Funktion alles bekommt was die Route erwartet
+
+        if "user_id" not in session:  # prüfen: ist der User NICHT eingeloggt?
+            return redirect(url_for("login"))  # wenn nein → weiter zur Login-Seite
+
+        return route_function(*args, **kwargs)  # wenn ja → ursprüngliche Route mit allen Daten ausführen
+
+    return wrapper_function  # gibt die geschützte Funktion zurück
+
 @app.route("/")
 def default():
     return redirect(url_for("login"))
@@ -31,6 +52,7 @@ def login():
             print(user)
             if user.Email == email and user.Passwort == password:
                 loged_in = True
+                session["user_id"] = user.ID  # Session sicher machen userid in session speichern
                 break
         if loged_in:
             return redirect(url_for("menue"))
@@ -44,9 +66,15 @@ def login():
 def registration():
     return render_template("registration.html")
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
 
 #Menue ausliefern
 @app.route("/menue")
+@login_required
 def menue():
     return render_template("menue.html")
 
