@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request, redirect,url_for, session
 from functools import wraps  # sorgt dafür, dass die Route ihren echten Namen behält für decorator benötigt
-from src import db
-from src.dtos import *
+import db
+from dtos import *
 
 # Flask App definieren, static_folder auf public setzen
 app = Flask(
-    __name__
+    __name__,
+    static_folder="static",
+    template_folder="templates"
 )
 app.secret_key = "supersecretkey"  # wichtig für session das diese sicher ist
 # app = Flask(
@@ -37,6 +39,7 @@ def login_required(route_function):  # das ist die Funktion (Route), die geschü
 
 @app.route("/")
 def default():
+    print("terst")
     return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET", "POST"])
@@ -45,7 +48,6 @@ def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-
         users:list[KontoinhaberDTO] = db.get_users()
         loged_in = False
         for user in users:
@@ -89,5 +91,5 @@ def menue():
 #     pass
 
 if __name__ == "__main__":
-    
-    app.run(host="127.0.0.1", port=3000, debug=True)
+    # use_reloader=False ist der Schlüssel für VS Code Debugging!
+    app.run(host="127.0.0.1", port=3000, debug=True, use_reloader=False)

@@ -1,7 +1,7 @@
 import sqlite3
 import sys
 from contextlib import closing
-from src.dtos import *
+from dtos import *
 
 def get_dto_data(dto:object): # Daten aus dto lesen und zurück geben
     table_name = dto.__class__.__name__[:dto.__class__.__name__.find("DTO")] # Holt sich aus der DTO den Namen der Klasse und schneidet DTO ab am ende
@@ -287,7 +287,7 @@ def __insert_test_data():
 
         connection.commit()
 
-__db_path = "./Database.db"
+__db_path = "./src/Database.db"
 
 if __name__ == "__main__":
     # __create_Database()
