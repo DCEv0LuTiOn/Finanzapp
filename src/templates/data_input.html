@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <header>
+        <title>Data Edit</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/data_input.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
+    </header>
+    <body style="display:flex; flex-direction: column; background-color: #c1ddff;">
+        {% include 'navigation.html' %}
+        <div clss="menue-container">
+            <!-- Filter -->
+            <div class="filter-container">
+                <label>Jahr:</label>
+                <select>
+                    <option>2022</option>
+                    <option>2023</option>
+                    <option>2024</option>
+                </select>
+                <label>Monat:</label>
+                <select>
+                    <option>Alle</option>
+                    <option>Januar</option>
+                    <option>Februar</option>
+                    <option>März</option>
+                </select>
+                <button class="btn-style">Filter anwenden</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>IBAN_Auftragskonto</th>
+                            <th>IBAN_Zahlungsbeteiligter</th>
+                            <th>Verwendungszweck</th>
+                            <th>Beitrag</th>
+                            <th>Saldo_n_Buchung</th>
+                            <th>Datum</th>
+                            <th>Buchungsart_ID</th>
+                            <th>Kategorie</th>
+                            <th>Bemerkung</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Beispiel A</td>
+                            <td>123</td>
+                            <td>2024-01-10</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Beispiel B</td>
+                            <td>456</td>
+                            <td>2024-02-15</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

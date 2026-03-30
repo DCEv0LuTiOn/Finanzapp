@@ -1,0 +1,12 @@
+<div class="navigation-container">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="navigation-logo">
+    <div class="navigation-content">
+        <!-- <label class="navigation-label">Navigation</label> -->
+        <div>
+            <a href="{{ url_for('menue') }}"><button class="navigation-btn">Home</button></a>
+            <a href="{{ url_for('data_input') }}"><button class="navigation-btn">Datein einlesen</button></a>
+            <a href="{{ url_for('data_edit') }}" ><button class="navigation-btn">Datein bearbeiten</button></a>
+        </div>
+    </div>
+    <div class="navigation-logout"><a href="{{ url_for('logout') }}">Ausloggen</a></div>
+</div>

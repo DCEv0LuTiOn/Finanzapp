@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
     <head>
-        <title>Diagramme</title>
-        <meta charset="utf-8">
+        <meta charset="UTF-8">
+        <title>Finazapp</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/menue.css') }}">
-    <meta charset="utf-8">
-
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
+    </head>
+    <body>
         <style> 
             .main-container{
                 display:flex;
@@ -121,13 +122,8 @@
             }
 
         </style>
-    </head>
-    <body>
-        <div class="navigation-container">
-            test
-        </div>
+        {% include 'navigation.html' %}
         <div class="main-container">
-
             <!-- Filter -->
             <div class="filter-container">
                 <label>Jahr:</label>
@@ -191,6 +187,5 @@
                 </div>
             </div>
         </div>
-        <a href="{{ url_for('logout') }}"> Hier Ausloggen</a>
     </body>
 </html>

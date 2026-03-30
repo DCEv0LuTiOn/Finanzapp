@@ -1,0 +1,71 @@
+.navigation-container {
+    display: flex;
+    align-items: center; 
+    height: 80px; /* Etwas höher, damit Label + Buttons Platz haben */
+    width: 100%;
+    background-color: rgb(97, 168, 255);
+    position: relative; /* Wichtig für die absolute Zentrierung */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-bottom: none;
+}
+
+.navigation-logo {
+    height: 80px;
+    margin-left: 20px;
+}
+
+.navigation-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); 
+}
+
+.navigation-logout{
+    margin-left: auto;
+    margin-right: 20px; 
+}
+
+.navigation-logout a {
+    text-decoration: none;   /* Unterstrich weg */
+    color: white;
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, 0.1); /* Leicht dunklerer Hintergrund */
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: background 0.3s;
+    font-size: large;
+}
+
+.navigation-logout a:hover {
+    background-color: rgba(255, 60, 60, 0.8); /* Wird rot beim Ausloggen-Hover */
+}
+
+.navigation-label {
+    font-weight: bold;
+    font-size: larger;
+    margin-bottom: 5px;
+}
+
+.navigation-btn {
+    background-color: white; /* Weißer Hintergrund */
+    border: none;            /* Kein hässlicher Rand */
+    padding: 8px 16px;      /* Mehr Platz im Button */
+    margin: 0 5px;           /* Abstand zwischen den Buttons */
+    border-radius: 20px;     /* Abgerundete Ecken (Pillen-Design) */
+    font-weight: 600;
+    color: rgb(50, 120, 255); /* Textfarbe passend zum Blau */
+    transition: all 0.3s ease; /* Macht den Hover-Effekt geschmeidig */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Leichter Schatten */
+    font-size: large;
+}
+
+.navigation-btn:hover {
+    background-color: rgb(230, 240, 255);
+    transform: translateY(-2px); /* Button hebt sich leicht an */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+}

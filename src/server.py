@@ -39,7 +39,6 @@ def login_required(route_function):  # das ist die Funktion (Route), die geschü
 
 @app.route("/")
 def default():
-    print("terst")
     return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET", "POST"])
@@ -79,6 +78,18 @@ def logout():
 @login_required
 def menue():
     return render_template("menue.html")
+
+#Menue ausliefern
+@app.route("/data_input")
+@login_required
+def data_input():
+    return render_template("data_input.html")
+
+#Menue ausliefern
+@app.route("/data_edit")
+@login_required
+def data_edit():
+    return render_template("data_edit.html")
 
 # # Alle Benutzer abrufen
 # @app.route("/api/users", methods=["GET"])
