@@ -1,0 +1,18 @@
+body{
+    background-color: rgb(193, 221, 255);
+    margin: 0;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+    .navigation-container{
+        width: 100%;
+        height: 10%;
+        background-color: rgb(97, 168, 255);
+        border-style: double;
+        border-color: gray;
+        border-bottom: 20px;
+    }
