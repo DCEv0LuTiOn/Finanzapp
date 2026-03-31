@@ -111,7 +111,7 @@ def logout():
 @app.route("/menue")
 @login_required
 def menue():
-    return render_template("menue.html")
+    return render_template("menue/menue.html")
 
 #Menue ausliefern
 @app.route("/data_input")

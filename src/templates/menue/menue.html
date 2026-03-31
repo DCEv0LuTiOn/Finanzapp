@@ -3,8 +3,9 @@
     <head>
         <meta charset="UTF-8">
         <title>Finanzapp</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/menue.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/menue/menue.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/menue/filter.css') }}">
     </head>
     <body>
         <style>
@@ -100,64 +101,49 @@
         </style>
         {% include 'navigation.html' %}
         <div class="main-container">
-            <!-- Filter -->
-            <div class="filter-container">
-                <label>Jahr:</label>
-                <select>
-                    <option>2022</option>
-                    <option>2023</option>
-                    <option>2024</option>
-                </select>
-                <label>Monat:</label>
-                <select>
-                    <option>Alle</option>
-                    <option>Januar</option>
-                    <option>Februar</option>
-                    <option>März</option>
-                </select>
-                <button class="filter-btn">Filter anwenden</button>
-            </div>
-            
+            {% include 'menue/filter.html' %}
             <!-- Aktuelle Daten -->
-            <div class="stats-container">
-                <div class="stat-box">
-                    <div class="stat-title">Kontostand</div>
-                        <div class="stat-value">2.350 €</div>
+             <div>
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <div class="stat-title">Kontostand</div>
+                            <div class="stat-value">2.350 €</div>
+                        </div>
+                    <div class="stat-box">
+                        <div class="stat-title">Ausgaben insgesamt</div>
+                        <div class="stat-value">1.120 €</div>
                     </div>
-                <div class="stat-box">
-                    <div class="stat-title">Ausgaben insgesamt</div>
-                    <div class="stat-value">1.120 €</div>
+                    <div class="stat-box">
+                        <div class="stat-title">Einnahmen insgesamt</div>
+                        <div class="stat-value">3.470 €</div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-title">Einnahmen insgesamt</div>
-                    <div class="stat-value">3.470 €</div>
-                </div>
-            </div>
 
-            <!-- Diagramme -->
-            <div class="menue-container">
-                <div class="diagram">
-                    <h2>Kuchendiagramm</h2>
-                    <div class="piechart"></div>
-                </div>
-                <div class="diagram">
-                    <h2>Balkendiagramm</h2>
-                    <div class="bar-container">
-                        <div>
-                            <div class="bar bar1"></div>
-                            <div class="label">Jan</div>
-                        </div>
-                        <div>
-                            <div class="bar bar2"></div>
-                            <div class="label">Feb</div>
-                        </div>
-                        <div>
-                            <div class="bar bar3"></div>
-                            <div class="label">Mär</div>
-                        </div>
-                        <div>
-                            <div class="bar bar4"></div>
-                            <div class="label">Apr</div>
+                <!-- Diagramme -->
+                <div class="menue-container">
+                    <div class="diagram">
+                        <h2>Kuchendiagramm</h2>
+                        <div class="piechart"></div>
+                    </div>
+                    <div class="diagram">
+                        <h2>Balkendiagramm</h2>
+                        <div class="bar-container">
+                            <div>
+                                <div class="bar bar1"></div>
+                                <div class="label">Jan</div>
+                            </div>
+                            <div>
+                                <div class="bar bar2"></div>
+                                <div class="label">Feb</div>
+                            </div>
+                            <div>
+                                <div class="bar bar3"></div>
+                                <div class="label">Mär</div>
+                            </div>
+                            <div>
+                                <div class="bar bar4"></div>
+                                <div class="label">Apr</div>
+                            </div>
                         </div>
                     </div>
                 </div>

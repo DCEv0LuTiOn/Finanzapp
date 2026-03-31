@@ -10,9 +10,16 @@ body {
 
 .main-container{
     display:flex;
-    flex-direction: column;
-    gap:25px;
     margin-top: 1%;
+    gap: 20px;
+    width: 90%;
+}
+
+.main-container > div {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
 }
 
 .filter-container{
