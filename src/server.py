@@ -53,6 +53,8 @@ def login():
             if user.Email == email and user.Passwort == hash_password(password):
                 session["user_id"] = user.ID  # Session sicher machen userid in session speichern
                 return redirect(url_for("menue"))
+            else:
+                error = "E-Mail oder Passwort falsch"
         else:
             error = "E-Mail oder Passwort falsch"
 
