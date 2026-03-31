@@ -1,0 +1,39 @@
+<!-- Filter Panel -->
+<div class="filter-panel">
+    <h3>⚙️ Filterung der Daten</h3>
+    <form method="POST" action="{{ url_for('menue') }}">
+        <div class="filter-section">
+            <label>Filter-Vorlagen</label>
+            <div class="filter-presets">
+                <button type="submit" class="preset-btn" name="preset" value="this_Month">Dieses Monat</button>
+                <button type="submit" class="preset-btn" name="preset" value="last_30_days">Letzte 30 Tage</button>
+            </div>
+            <div class="filter-presets">
+                <button type="submit" class="preset-btn" name="preset" value="current_quarter">Dieses Quartal</button>
+                <button type="submit" class="preset-btn" name="preset" value="year_to_date">Seit Jahresanfang</button>
+            </div>
+            <div class="filter-presets">
+                <button type="submit" class="preset-btn" name="preset" value="current_quarter">Letztes Jahr</button>
+                <button type="submit" class="preset-btn" name="preset" value="all">Alles</button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <label>Benutzerdefinierte Datumsbereich</label>
+            <label style="font-weight: normal; margin-top: 8px;">Startdatum:</label>
+            <input type="date" name="start_date" value="{{ start_date or '2026-03-01' }}">
+            <label style="font-weight: normal; margin-top: 8px;">Enddatum:</label>
+            <input type="date" name="end_date" value="{{ end_date or '2026-03-31' }}">
+        </div>
+
+        <div class="filter-section">
+            <label>Kategorie</label>
+            <div class="checkbox-group">
+                {% for category in categories %}
+                    <label><input type="checkbox" name="category" value="{{ category.ID }}" {% if category.ID in selected_categories %}checked{% endif %}> {{ category.Bezeichnung }}</label>
+                {% endfor %}
+            </div>
+        </div>
+        <button type="submit" class="apply-filters-btn" name="apply" value="apply">Filter anwenden</button>
+    </form>
+</div>
