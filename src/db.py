@@ -20,12 +20,12 @@ def get_table_primary_keys(connection,table_name) ->list[str]:
             pk_names.append(column[1])
     return pk_names
 
-def execute_select_dto_list(sql:str,dto_class) -> list[object]: # sql und den Datentype bzw. die DTO Klasse
+def execute_select_dto_list(sql:str,dto_class,wheres:dict) -> list[object]: # sql und den Datentype bzw. die DTO Klasse
     with sqlite3.connect(__db_path) as connection:
         connection.execute("PRAGMA foreign_keys = ON;") # wird von sqlight3 benötigt das forgein_keys funktionieren
         connection.row_factory = sqlite3.Row            # wird von sqlight3 benötigt das man spaltennamen im cursor mit cursor.description rauslesen kann
         with closing(connection.cursor()) as cursor:
-            cursor.execute(sql)
+            cursor.execute(sql,wheres)
             column_names = [col[0] for col in cursor.description] # Spaltennamen aus dem select holen
             results = []
             for row in cursor.fetchall(): # alle daten vom select holen
@@ -33,10 +33,17 @@ def execute_select_dto_list(sql:str,dto_class) -> list[object]: # sql und den Da
                 results.append(dto_class(**row_dict))  # alle zeilen vom dictionary der DTO Klasse hinzufügen
                                                     # anhand der spalten namen von select und DTO Variablen namen 
                                                     # => namen müssen gleich sein
-            return results
+            if len(results) == 0:
+                return None
+            else:
+                return results
 
-def execute_select_dto(sql:str,dto_class) -> object: # sql und den Datentype bzw. die DTO Klasse
-    return execute_select_dto_list(sql,dto_class)[0]
+def execute_select_dto(sql:str,dto_class,wheres:dict) -> object: # sql und den Datentype bzw. die DTO Klasse
+    users = execute_select_dto_list(sql,dto_class,wheres)
+    if users:
+        return users[0]
+    else:
+        return None
     # with sqlite3.connect(__db_path) as connection:
     #     connection.execute("PRAGMA foreign_keys = ON;") 
     #     connection.row_factory = sqlite3.Row
@@ -49,12 +56,12 @@ def execute_select_dto(sql:str,dto_class) -> object: # sql und den Datentype bzw
     #                                                 # anhand der spalten namen von select und DTO Variablen namen 
     #                                                 # => namen müssen gleich sein
 
-def execute_select_value(sql:str) -> str|int|float: # sql und den Datentype bzw. die DTO Klasse
+def execute_select_value(sql:str,wheres:dict) -> str|int|float: # sql und den Datentype bzw. die DTO Klasse
     with sqlite3.connect(__db_path) as connection:  # Connection automatisch schließen
         connection.execute("PRAGMA foreign_keys = ON;")
         connection.row_factory = sqlite3.Row
         with closing(connection.cursor()) as cursor:
-            cursor.execute(sql)
+            cursor.execute(sql,wheres)
             row = cursor.fetchone() # daten vom select holen
             return row[0]
         
@@ -102,9 +109,10 @@ def execute_update_dtos(dtos:object | list[object]):
             print("DB Fehler:", e)
             raise
 
-def get_users():
-    sql = "SELECT * FROM Kontoinhaber"
-    users = execute_select_dto_list(sql,KontoinhaberDTO)
+def get_user_by_email(email):
+    wheres = {'Email':email}
+    sql = "SELECT * FROM Kontoinhaber where Email = :Email"
+    users = execute_select_dto(sql,KontoinhaberDTO,wheres)
     return users
 
 def __create_Database():
@@ -292,9 +300,10 @@ __db_path = "./src/Database.db"
 if __name__ == "__main__":
     # __create_Database()
     # __insert_test_data()
-    user = [KontoinhaberDTO(ID=4,Vorname="Kevin",Nachname="Test_neu",Email="kevin.mustermax@web.de",Passwort="abc123")]
+    # user = [KontoinhaberDTO(ID=4,Vorname="Kevin",Nachname="Test_neu",Email="kevin.mustermax@web.de",Passwort="abc123")]
     # execute_insert_dtos(user)
     # execute_update_dtos(user)
-    users = get_users()
-    for user in users:
-        print(user)
+    # users = get_user_by_email("kevin.mustermax@web.de")
+    # for user in users:
+    #     print(user)
+    pass
