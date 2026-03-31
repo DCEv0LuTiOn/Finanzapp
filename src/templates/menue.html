@@ -2,36 +2,12 @@
 <html lang="de">
     <head>
         <meta charset="UTF-8">
-        <title>Finazapp</title>
+        <title>Finanzapp</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/menue.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
     </head>
     <body>
-        <style> 
-            .main-container{
-                display:flex;
-                flex-direction:column;
-                gap:25px;
-                margin-top: 5%;
-            }
-
-            .btn-style{
-                background-color:white;
-                border: 1px solid;
-                border-color: black; 
-            }
-            /* Filterbereich */
-
-            .filter-container{
-                background:white;
-                padding:15px;
-                border-radius:10px;
-                box-shadow:5px 5px 15px rgba(0,0,0,0.3);
-                display:flex;
-                gap:20px;
-                justify-content:center;
-                align-items:center;
-            }
+        <style>
 
             /* Statistikbereich */
 
@@ -139,7 +115,7 @@
                     <option>Februar</option>
                     <option>März</option>
                 </select>
-                <button class="btn-style">Filter anwenden</button>
+                <button class="filter-btn">Filter anwenden</button>
             </div>
             
             <!-- Aktuelle Daten -->

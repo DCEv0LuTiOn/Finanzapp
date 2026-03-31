@@ -48,16 +48,11 @@ def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-        users:list[KontoinhaberDTO] = db.get_users()
-        loged_in = False
-        for user in users:
-            print(user)
+        user:KontoinhaberDTO = db.get_user_by_email(email)
+        if user:
             if user.Email == email and user.Passwort == password:
-                loged_in = True
                 session["user_id"] = user.ID  # Session sicher machen userid in session speichern
-                break
-        if loged_in:
-            return redirect(url_for("menue"))
+                return redirect(url_for("menue"))
         else:
             error = "E-Mail oder Passwort falsch"
 
