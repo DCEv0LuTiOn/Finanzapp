@@ -3,94 +3,34 @@
     <header>
         <title>Sign Up</title>
         <meta charset="utf-8">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/registration.css') }}">
     </header>
-
-    <style> 
-        body{
-            background-color: #c1ddff;
-            margin: 0;
-            display:flex;
-            justify-content: center; /* horizontal zentrieren */
-            align-items: center;
-            font-family: Arial, sans-serif;
-        }
-        .signup-container{
-            width: 300px;
-            padding: 15px;
-            background-color: white;
-            border-radius: 10px;
-            margin-top: 200px;
-            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .div-btn-style{
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .btn-style{
-            background-color:white;
-            border: 1px solid;
-            border-color: black; 
-            
-        }
-
-        .form-row{
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-row label{
-            width: 80px; /* statische Breite, für sortiertes Layout untereinander */
-            text-align: right;
-        }
-
-        .form-row input{
-            flex: 1; /* füllt den restlichen Platz */
-        }
-
-        .lbl-info{
-            font-size:small; /*damit die info kleiner Angezeigt wird */
-            color:red;
-        }
-    
-    </style>
     <body style="align-content: center;">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo">
             <div class="signup-container">
-                <label>Sigh Up:</label> 
-                <label class="lbl-info" name="lblInfo">test</label>         
-                <form action="/sign_up" method="POST">   
-                <div class="form-row">
-                    <label>Vorname:</label> 
-                    <input type="text" name="txt_vorname">
-                </div>
+                <br>
+                <div class="signin-container">
+                    <div class="form-input-label">Sign Up:</div>
+                    <br>
+                    <label class="form-error-label" name="lblInfo">{{ lblInfo }}</label>         
+                    <form action="/sign_up" method="POST">
 
-                <div class="form-row">
-                    <label>Nachname:</label> 
-                    <input type="text" name="txt_nachname">
-                </div>
+                    <div class="form-input-label">Vorname:</div>
+                    <input type="text" name="txt_vorname" class="form-input">
+                    
+                    <div class="form-input-label">Nachname:</div>
+                    <input type="text" name="txt_nachname" class="form-input">
 
-                <div class="form-row">
-                    <label>eMail:</label> 
-                    <input type="text" name="txt_email">
-                </div>
+                    <div class="form-input-label">eMail:</div>
+                    <input type="text" name="txt_email" class="form-input">
 
-                <div class="form-row">
-                    <label>Passwort:</label>
-                    <input type="text" name="txt_password" >
-                </div>
+                    <div class="form-input-label">Passwort:</div>
+                    <input type="password" name="txt_password" class="form-input">
 
-                <div class="form-row" class>
-                    <label>w.Passwort:</label>
-                    <input type="text" name="txt_best_password" >
-                </div>
+                    <div class="form-input-label">Passwort bestätigen:</div>
+                    <input type="password" name="txt_best_password" class="form-input">
 
-                <div class="div-btn-style">
-                    <button class="btn-style">Sign Up</button>
+                    <button class="signin-btn">Sign Up</button>
                 </div>
             </div>
     </body>

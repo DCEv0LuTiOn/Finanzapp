@@ -50,7 +50,7 @@ def login():
         password = request.form["password"]
         user:KontoinhaberDTO = db.get_user_by_email(email)
         if user:
-            if user.Email == email and user.Passwort == password:
+            if user.Email == email and user.Passwort == hash_password(password):
                 session["user_id"] = user.ID  # Session sicher machen userid in session speichern
                 return redirect(url_for("menue"))
         else:
@@ -76,23 +76,20 @@ def sign_up():
     best_password = request.form["txt_best_password"]
     
     if kontoinhaber.Passwort != best_password:
-        error = "Passwörter stimmen nicht überein"
-        return render_template("registration.html", error=error)
+        error = "Passwörter stimmen nicht überein!"
+        return render_template("registration.html", lblInfo=error)
     if db.get_user_by_email(kontoinhaber.Email) is not None:
-        error = "E-Mail ist bereits registriert"
-        return render_template("registration.html", error=error)
+        error = "E-Mail ist bereits registriert!"
+        return render_template("registration.html", lblInfo=error)
     if not ("@" in kontoinhaber.Email and "." in kontoinhaber.Email):
-        error = "E-Mail muss ein @ und einen Punkt enthalten"
-        return render_template("registration.html", error=error)    
-    if kontoinhaber.Email.strip() == "" or kontoinhaber.Passwort.strip() == "":
-        error = "E-Mail und Passwort dürfen keine Leerzeichen enthalten"
-        return render_template("registration.html", error=error)
+        error = "E-Mail muss ein @ und einen Punkt enthalten!"
+        return render_template("registration.html", lblInfo=error)    
     if len(kontoinhaber.Passwort) < 6:
-        error = "Passwort muss mindestens 6 Zeichen lang sein"
-        return render_template("registration.html", error=error)
+        error = "Passwort muss mindestens 6 Zeichen lang sein!"
+        return render_template("registration.html", lblInfo=error)
     if len(kontoinhaber.Vorname) == 0 or len(kontoinhaber.Nachname) == 0:
-        error = "Vorname und Nachname dürfen nicht leer sein"
-        return render_template("registration.html", error=error)
+        error = "Vorname und Nachname dürfen nicht leer sein!"
+        return render_template("registration.html", lblInfo=error)
     
     kontoinhaber.Passwort = hash_password(kontoinhaber.Passwort)
 
