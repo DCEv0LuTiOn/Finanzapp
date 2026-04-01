@@ -25,8 +25,20 @@
 }
 
 .navigation-logout{
+    display: flex;
+    align-items: center;
+    gap: 15px;
     margin-left: auto;
     margin-right: 20px; 
+}
+
+.user-id-display {
+    color: white;
+    font-weight: bold;
+    font-size: large;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 5px;
 }
 
 .navigation-logout a {

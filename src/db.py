@@ -115,6 +115,12 @@ def get_user_by_email(email):
     users = execute_select_dto(sql,KontoinhaberDTO,wheres)
     return users
 
+def get_kategorien_by_kontoinhaber_id(kontoinhaber_id) -> list[KategorieDTO]:
+    wheres = {'Kontoinhaber_ID':kontoinhaber_id}
+    sql = "SELECT * FROM Kategorie where Kontoinhaber_ID = :Kontoinhaber_ID"
+    kategorien = execute_select_dto_list(sql,KategorieDTO,wheres)
+    return kategorien
+
 def __create_Database():
     with sqlite3.connect(__db_path) as connection:
         connection.execute("PRAGMA foreign_keys = ON;")
@@ -299,11 +305,23 @@ __db_path = "./src/Database.db"
 
 if __name__ == "__main__":
     # __create_Database()
-    # __insert_test_data()
-    # user = [KontoinhaberDTO(ID=4,Vorname="Kevin",Nachname="Test_neu",Email="kevin.mustermax@web.de",Passwort="abc123")]
-    # execute_insert_dtos(user)
+    # # __insert_test_data()
+    # kategorie:list[KategorieDTO] = [KategorieDTO(Bezeichnung="Essen", Kontoinhaber_ID=5),
+    #                                     KategorieDTO(Bezeichnung="Miete", Kontoinhaber_ID=5),
+    #                                     KategorieDTO(Bezeichnung="Einkauf", Kontoinhaber_ID=5),
+    #                                     KategorieDTO(Bezeichnung="Freizeit", Kontoinhaber_ID=5),
+    #                                     KategorieDTO(Bezeichnung="Reisen", Kontoinhaber_ID=5),
+    #                                     KategorieDTO(Bezeichnung="Auto", Kontoinhaber_ID=5),
+    #                                     KategorieDTO(Bezeichnung="Sonstiges", Kontoinhaber_ID=5)]
+    # user = get_user_by_email("test@web.de")
+    # user.vorname = "Kevin"
+    # user.nachname = "Mustermax"
+    # execute_insert_dtos(kategorie)
     # execute_update_dtos(user)
     # users = get_user_by_email("kevin.mustermax@web.de")
     # for user in users:
     #     print(user)
+    # kategorien = get_kategorien_by_kontoinhaber_id(5)
+    # for kategorie in kategorien:
+    #     print(kategorie)
     pass

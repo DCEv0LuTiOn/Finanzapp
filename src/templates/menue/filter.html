@@ -5,35 +5,35 @@
         <div class="filter-section">
             <label>Filter-Vorlagen</label>
             <div class="filter-presets">
-                <button type="submit" class="preset-btn" name="preset" value="this_Month">Dieses Monat</button>
-                <button type="submit" class="preset-btn" name="preset" value="last_30_days">Letzte 30 Tage</button>
+                <button type="submit" class="preset-btn" name="filter_btn" value="this_Month">Dieses Monat</button>
+                <button type="submit" class="preset-btn" name="filter_btn" value="last_30_days">Letzte 30 Tage</button>
             </div>
             <div class="filter-presets">
-                <button type="submit" class="preset-btn" name="preset" value="current_quarter">Dieses Quartal</button>
-                <button type="submit" class="preset-btn" name="preset" value="year_to_date">Seit Jahresanfang</button>
+                <button type="submit" class="preset-btn" name="filter_btn" value="current_quarter">Dieses Quartal</button>
+                <button type="submit" class="preset-btn" name="filter_btn" value="this_year">Dieses Jahr</button>
             </div>
             <div class="filter-presets">
-                <button type="submit" class="preset-btn" name="preset" value="current_quarter">Letztes Jahr</button>
-                <button type="submit" class="preset-btn" name="preset" value="all">Alles</button>
+                <button type="submit" class="preset-btn" name="filter_btn" value="last_year">Letztes Jahr</button>
+                <button type="submit" class="preset-btn" name="filter_btn" value="all">Alles</button>
             </div>
         </div>
 
         <div class="filter-section">
             <label>Benutzerdefinierte Datumsbereich</label>
             <label style="font-weight: normal; margin-top: 8px;">Startdatum:</label>
-            <input type="date" name="start_date" value="{{ start_date or '2026-03-01' }}">
+            <input type="date" name="start_date" value="{{ start_date or '' }}">
             <label style="font-weight: normal; margin-top: 8px;">Enddatum:</label>
-            <input type="date" name="end_date" value="{{ end_date or '2026-03-31' }}">
+            <input type="date" name="end_date" value="{{ end_date or '' }}">
         </div>
 
         <div class="filter-section">
             <label>Kategorie</label>
             <div class="checkbox-group">
-                {% for category in categories %}
-                    <label><input type="checkbox" name="category" value="{{ category.ID }}" {% if category.ID in selected_categories %}checked{% endif %}> {{ category.Bezeichnung }}</label>
+                {% for kategorie in kategorien %}
+                    <label><input type="checkbox" name="kategorie" value="{{ kategorie.ID }}" {% if kategorie.ID|string in selected_kategorien %}checked{% endif %}> {{ kategorie.Bezeichnung }}</label>
                 {% endfor %}
             </div>
         </div>
-        <button type="submit" class="apply-filters-btn" name="apply" value="apply">Filter anwenden</button>
+        <button type="submit" class="apply-filters-btn" name="filter_btn" value="filter_apply">Filter anwenden</button>
     </form>
 </div>

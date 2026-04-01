@@ -6,7 +6,6 @@
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow-y: auto;
     max-height: 100%;
 }
 
@@ -34,9 +33,8 @@
     font-size: 13px;
 }
 
-.filter-section input[type="date"],
-.filter-section select {
-    width: 100%;
+.filter-section input{
+    width: 95%;
     padding: 8px;
     margin-bottom: 8px;
     border: 1px solid #ddd;
@@ -68,9 +66,9 @@
 }
 
 .checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 .checkbox-group label {
@@ -79,11 +77,14 @@
     font-weight: normal;
     margin: 0;
     font-size: 13px;
+    gap: 8px;
 }
 
 .checkbox-group input[type="checkbox"] {
-    margin-right: 8px;
+    flex-shrink: 0;
     cursor: pointer;
+    width: 16px;
+    height: 16px;
 }
 
 .apply-filters-btn {
@@ -96,9 +97,10 @@
     cursor: pointer;
     font-weight: 600;
     margin-top: 15px;
-    transition: background 0.2s ease;
+    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
 }
 
 .apply-filters-btn:hover {
-    background: #1a1a1a;
+    background: #0d7377;
+    box-shadow: 0 4px 12px rgba(13, 115, 119, 0.4);
 }

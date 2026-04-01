@@ -3,6 +3,8 @@ from functools import wraps  # sorgt dafür, dass die Route ihren echten Namen b
 import db
 from dtos import *
 import hashlib
+import calendar
+from datetime import datetime, timedelta
 
 # Flask App definieren, static_folder auf public setzen
 app = Flask(
@@ -52,6 +54,7 @@ def login():
         if user:
             if user.Email == email and user.Passwort == hash_password(password):
                 session["user_id"] = user.ID  # Session sicher machen userid in session speichern
+                session["name"] = user.Vorname + " " + user.Nachname
                 return redirect(url_for("menue"))
             else:
                 error = "E-Mail oder Passwort falsch"
@@ -109,34 +112,111 @@ def logout():
     return redirect(url_for("login"))
 
 
-#Menue ausliefern
-@app.route("/menue")
+@app.route("/menue", methods=["GET", "POST"])
 @login_required
 def menue():
-    return render_template("menue/menue.html")
+    kategorien:list[KategorieDTO] = db.get_kategorien_by_kontoinhaber_id(session.get("user_id"))
+    
+    # Default Datumsbereich
+    start_date = ""
+    end_date = ""
+    
+    # User hat Filter angewendet → in Session speichern
+    if request.method == "POST":
+        selected_kategorien = request.form.getlist("kategorie")
+        session["selected_kategorien"] = selected_kategorien
+        session.modified = True  # wichtig: Session-Änderung mitteilen
+        
+        # Welcher Button wurde gedrückt?
+        filter_btn = request.form.get("filter_btn")
+        
+        # Datumsbereich bestimmen mit der separaten Funktion
+        start_date, end_date = filterdatum_auslesen(filter_btn)
+        session["start_date"] = start_date
+        session["end_date"] = end_date
+    else:
+        if "start_date" in session and "end_date" in session:
+            start_date = session["start_date"]
+            end_date = session["end_date"]
+        # Aus Session auslesen, oder alle Kategorien auswählen (Default)
+        if "selected_kategorien" in session and session["selected_kategorien"]:
+            selected_kategorien = session["selected_kategorien"]
+        else:
+            # Beim ersten Laden: alle Kategorie-IDs auswählen
+            selected_kategorien = [str(kategorie.ID) for kategorie in kategorien]
+    
+    return render_template("menue/menue.html",
+                          user_name=session.get("name"),
+                          kategorien=kategorien,
+                          selected_kategorien=selected_kategorien,
+                          start_date=start_date,
+                          end_date=end_date)
 
 #Menue ausliefern
 @app.route("/data_input")
 @login_required
 def data_input():
-    return render_template("data_input.html")
+    return render_template("data_input.html", user_name=session.get("name"))
 
 #Menue ausliefern
 @app.route("/data_edit")
 @login_required
 def data_edit():
-    return render_template("data_edit.html")
+    return render_template("data_edit.html", user_name=session.get("name"))
 
+def filterdatum_auslesen(filter_btn):
+    today = datetime.now().date()
+    start_date = ""
+    end_date = ""
+    
+    if filter_btn == "this_Month":
+        # Dieses Monat: 1. bis Ende des Monats
+        monthday, last_day = calendar.monthrange(today.year, today.month)
+        end_date = datetime(today.year, today.month, last_day).strftime("%Y-%m-%d")
+        start_date = datetime(today.year, today.month, 1).strftime("%Y-%m-%d")
+    elif filter_btn == "last_30_days":
+        # Letzte 30 Tage: heute minus 30 Tage bis heute
+        end_date = today.strftime("%Y-%m-%d")
+        start_date = (today - timedelta(days=30)).strftime("%Y-%m-%d")
+    elif filter_btn == "current_quarter":
+        # Aktuelles Quartal
+        quarter = (today.month - 1) // 3  # 0=Q1, 1=Q2, 2=Q3, 3=Q4
+        quarter_start_month = quarter * 3 + 1
+        quarter_end_month = quarter * 3 + 3
+        
+        start_date = datetime(today.year, quarter_start_month, 1).strftime("%Y-%m-%d")
+        if quarter_end_month == 3:
+            end_date = datetime(today.year, 3, 31).strftime("%Y-%m-%d")
+        elif quarter_end_month == 6:
+            end_date = datetime(today.year, 6, 30).strftime("%Y-%m-%d")
+        elif quarter_end_month == 9:
+            end_date = datetime(today.year, 9, 30).strftime("%Y-%m-%d")
+        else:  # quarter_end_month == 12
+            end_date = datetime(today.year, 12, 31).strftime("%Y-%m-%d")
+    elif filter_btn == "this_year":
+        # Dieses Jahr: 1. Januar bis 31. Dezember
+        end_date = datetime(today.year, 12, 31).strftime("%Y-%m-%d")
+        start_date = datetime(today.year, 1, 1).strftime("%Y-%m-%d")
+    elif filter_btn == "last_year":
+        # Letztes Jahr: 1. Januar bis 31. Dezember
+        end_date = datetime(today.year - 1, 12, 31).strftime("%Y-%m-%d")
+        start_date = datetime(today.year - 1, 1, 1).strftime("%Y-%m-%d")
+    elif filter_btn == "all":
+        # Keine Datumsfilter
+        start_date = ""
+        end_date = ""
+    elif filter_btn == "filter_apply":
+        # "Filter anwenden" Button: benutzerdefinierter Datumsbereich
+        # Der Aufrufer muss start_date und end_date aus request.form übergeben
+        start_date = request.form.get("start_date", "")
+        end_date = request.form.get("end_date", "")
+    else:
+        # Fallback: keine Datumsfilter
+        start_date = ""
+        end_date = ""
+    
+    return (start_date, end_date)
 
-# # Alle Benutzer abrufen
-# @app.route("/api/users", methods=["GET"])
-# def get_users():
-#     pass
-
-# # Benutzer hinzufügen
-# @app.route("/api/users", methods=["POST"])
-# def add_user():
-#     pass
 
 if __name__ == "__main__":
     # use_reloader=False ist der Schlüssel für VS Code Debugging!
