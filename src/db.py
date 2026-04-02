@@ -33,15 +33,12 @@ def execute_select_dto_list(sql:str,dto_class,wheres:dict) -> list[object]: # sq
                 results.append(dto_class(**row_dict))  # alle zeilen vom dictionary der DTO Klasse hinzufügen
                                                     # anhand der spalten namen von select und DTO Variablen namen 
                                                     # => namen müssen gleich sein
-            if len(results) == 0:
-                return None
-            else:
-                return results
+            return results
 
 def execute_select_dto(sql:str,dto_class,wheres:dict) -> object: # sql und den Datentype bzw. die DTO Klasse
-    users = execute_select_dto_list(sql,dto_class,wheres)
-    if users:
-        return users[0]
+    executed_list = execute_select_dto_list(sql,dto_class,wheres)
+    if len(executed_list) > 0:
+        return executed_list[0]
     else:
         return None
     # with sqlite3.connect(__db_path) as connection:
@@ -120,6 +117,60 @@ def get_kategorien_by_kontoinhaber_id(kontoinhaber_id) -> list[KategorieDTO]:
     sql = "SELECT * FROM Kategorie where Kontoinhaber_ID = :Kontoinhaber_ID"
     kategorien = execute_select_dto_list(sql,KategorieDTO,wheres)
     return kategorien
+
+def get_konto_by_user_id(kontoinhaber_id) -> list[KontoDTO]:
+    wheres = {'Kontoinhaber_ID':kontoinhaber_id}
+    sql = "SELECT * FROM Konto where Kontoinhaber_ID = :Kontoinhaber_ID"
+    konten = execute_select_dto_list(sql,KontoDTO,wheres)
+    return konten
+
+def get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(ibans:list[str], kategorie_IDs:list, start_date:str, end_date:str) -> list[TransaktionDTO]:
+
+    # 1. Validierung: Wenn nichts gewählt ist, sofort abbrechen
+    if not ibans or not kategorie_IDs:
+        return []
+
+    # 2. Daten-Vorbereitung: Erstelle eine saubere Liste nur mit IDs (Integers)
+    # Filtert "null" raus und behält alles andere
+    clean_kategorie_ids = [k for k in kategorie_IDs if k != "null"]
+    has_null = "null" in kategorie_IDs
+
+    # 3. IBAN Platzhalter generieren (für SQLite Einzelparameter)
+    iban_params = {f"ib_{i}": val for i, val in enumerate(ibans)}
+    iban_placeholders = ", ".join([f":{k}" for k in iban_params.keys()])
+
+    # Start des SQL-Befehls mit Datumsfiltern
+    sql = f"""
+    SELECT * FROM Transaktion 
+    WHERE IBAN_Auftragskonto IN ({iban_placeholders})
+      AND (:start_date = '' OR Transaktions_Datum >= :start_date)
+      AND (:end_date = '' OR Transaktions_Datum <= :end_date)
+    """
+
+    # 4. Kategorie-Logik mit der "cleanen" Liste
+    kat_params = {}
+    if clean_kategorie_ids:
+        # Platzhalter für die echten IDs bauen
+        kat_params = {f"kat_{i}": val for i, val in enumerate(clean_kategorie_ids)}
+        kat_placeholders = ", ".join([f":{k}" for k in kat_params.keys()])
+
+        if has_null:
+            sql += f" AND (Kategorie_ID IN ({kat_placeholders}) OR Kategorie_ID IS NULL)"
+        else:
+            sql += f" AND Kategorie_ID IN ({kat_placeholders})"
+    elif has_null:
+        # NUR "null" wurde ausgewählt, keine anderen IDs
+        sql += " AND Kategorie_ID IS NULL"
+
+    # 5. Alle Parameter für execute_select_dto_list zusammenführen
+    wheres = {
+        **iban_params,
+        **kat_params,
+        'start_date': start_date,
+        'end_date': end_date
+    }
+
+    return execute_select_dto_list(sql, TransaktionDTO, wheres)
 
 def __create_Database():
     with sqlite3.connect(__db_path) as connection:
@@ -306,6 +357,11 @@ __db_path = "./src/Database.db"
 if __name__ == "__main__":
     # __create_Database()
     # # __insert_test_data()
+        # konten = get_konto_by_user_id(3)
+        # for konto in konten:
+        #     konto.Konto_Name = "Girokonto"
+        #     konto.Kontoinhaber_ID = 5
+        #     execute_update_dtos(konto)
     # kategorie:list[KategorieDTO] = [KategorieDTO(Bezeichnung="Essen", Kontoinhaber_ID=5),
     #                                     KategorieDTO(Bezeichnung="Miete", Kontoinhaber_ID=5),
     #                                     KategorieDTO(Bezeichnung="Einkauf", Kontoinhaber_ID=5),
@@ -313,6 +369,41 @@ if __name__ == "__main__":
     #                                     KategorieDTO(Bezeichnung="Reisen", Kontoinhaber_ID=5),
     #                                     KategorieDTO(Bezeichnung="Auto", Kontoinhaber_ID=5),
     #                                     KategorieDTO(Bezeichnung="Sonstiges", Kontoinhaber_ID=5)]
+    # test_daten = [
+        # TransaktionDTO(None, "DE75512108001245126199", "DE445000000012345678", "Arbeitgeber GmbH", "Gehalt 03/2026", 2450.00, 5450.00, "2026-03-01", 1, 12, "Sonstiges / Eingang"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE105000000087654321", "Vermieter Wohnen", "Miete Maerz", -850.00, 1200.50, "2026-03-02", 2, 7, "Miete"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE885000000011223344", "Edeka Center", "Wocheneinkauf", -45.67, 5404.33, "2026-03-03", 3, 8, "Einkauf"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE225000000099887766", "Stadtwerke", "Abschlag Strom", -112.00, 1088.50, "2026-03-03", 2, 12, "Sonstiges"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE335000000055443322", "Kino Welt", "Tickets & Snacks", -29.99, 5374.34, "2026-03-04", 3, 9, "Freizeit"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE555000000066778899", "Lufthansa", "Flug Buchung", -254.95, 833.55, "2026-03-05", 3, 10, "Reisen"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE775000000012121212", "Shell Station", "Tanken", -82.50, 5291.84, "2026-03-06", 3, 11, "Auto"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE195000000034343434", "Restaurant Da Luigi", "Abendessen", -65.00, 768.55, "2026-03-07", 3, 6, "Essen"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE405000000090909090", "Netflix.com", "Abo", -17.99, 5273.85, "2026-03-08", 3, 9, "Freizeit"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE215000000078787878", "KFZ Versicherung", "Jahresbeitrag", -412.40, 356.15, "2026-03-09", 2, 11, "Auto"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE305000000056565656", "Rewe Markt", "Einkauf", -63.20, 5210.65, "2026-03-10", 3, 8, "Einkauf"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE445000000012345678", "Arbeitgeber GmbH", "Bonus", 500.00, 856.15, "2026-03-11", 1, 12, "Sonstiges"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE125000000011111111", "H&M Online", "Kleidung", -89.95, 5120.70, "2026-03-12", 3, 12, "Sonstiges"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE995000000022222222", "Deutsche Bahn", "Urlaubsreise", -149.00, 707.15, "2026-03-13", 3, 10, "Reisen"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE885000000011223344", "Edeka Center", "Getraenke", -12.50, 5108.20, "2026-03-14", 3, 8, "Einkauf"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE775000000012121212", "Shell Station", "Waschanlage", -15.00, 692.15, "2026-03-15", 3, 11, "Auto"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE335000000055443322", "Amazon.de", "Haushalt", -34.00, 5074.20, "2026-03-16", 3, 8, "Einkauf"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE101010101010101010", "Pizzeria", "Pizza", -25.00, 667.15, "2026-03-17", 3, 6, "Essen"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE505050505050505050", "Spotify AB", "Entertainment", -14.99, 5059.21, "2026-03-18", 2, 9, "Freizeit"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE305000000056565656", "Rewe Markt", "Snacks", -8.45, 658.70, "2026-03-19", 3, 8, "Einkauf"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE225000000099887766", "Vermieter Garagen", "Stellplatz", -80.00, 4979.21, "2026-03-20", 2, 7, "Miete"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE665000000033333333", "Apotheke", "Medikamente", -22.30, 636.40, "2026-03-21", 3, 12, "Sonstiges"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE111111111111111111", "IKEA", "Deko", -40.00, 4939.21, "2026-03-22", 3, 12, "Sonstiges"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE445000000012345678", "Arbeitgeber GmbH", "Reisekosten", 125.50, 761.90, "2026-03-23", 1, 10, "Reisen"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE335000000055443322", "Amazon.de", "Buch", -12.99, 4926.22, "2026-03-24", 3, 9, "Freizeit"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE885000000011223344", "Edeka Center", "Einkauf", -33.10, 728.80, "2026-03-25", 3, 8, "Einkauf"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE775000000012121212", "Shell Station", "Tanken", -95.00, 4831.22, "2026-03-26", 3, 11, "Auto"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE305000000056565656", "Burger King", "Essen gehen", -12.50, 716.30, "2026-03-27", 3, 6, "Essen"),
+        # TransaktionDTO(None, "DE75512108001245126199", "DE105000000087654321", "Immobilien GmbH", "Miete Wohnung", -900.00, 3931.22, "2026-03-28", 2, 7, "Miete"),
+        # TransaktionDTO(None, "DE12500105170648489890", "DE225000000099887766", "ADAC", "Beitrag", -15.20, 701.10, "2026-03-29", 3, 11, "Auto")
+    #     TransaktionDTO(None, "DE12500105170648489890", "DE225000000099887755", "Abschlepen", "Beitrag", -15.20, 701.10, "2026-03-29", 3, None, "Auto Abschlepen"),
+    #     TransaktionDTO(None, "DE75512108001245126199", "DE885000000021223341", "Edeka Center", "Getraenke", -12.50, 5108.20, "2026-03-14", 3, None, "Einkauf")
+    # ]
+    # execute_insert_dtos(test_daten)
     # user = get_user_by_email("test@web.de")
     # user.vorname = "Kevin"
     # user.nachname = "Mustermax"
@@ -324,4 +415,7 @@ if __name__ == "__main__":
     # kategorien = get_kategorien_by_kontoinhaber_id(5)
     # for kategorie in kategorien:
     #     print(kategorie)
+    konten = get_konto_by_user_id(5)
+    for konto in konten:
+        print(konto)
     pass

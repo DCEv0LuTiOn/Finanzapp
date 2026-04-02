@@ -116,6 +116,7 @@ def logout():
 @login_required
 def menue():
     kategorien:list[KategorieDTO] = db.get_kategorien_by_kontoinhaber_id(session.get("user_id"))
+    konten:list[KontoDTO] = db.get_konto_by_user_id(session.get("user_id"))
     
     # Default Datumsbereich
     start_date = ""
@@ -125,8 +126,7 @@ def menue():
     if request.method == "POST":
         selected_kategorien = request.form.getlist("kategorie")
         session["selected_kategorien"] = selected_kategorien
-        session.modified = True  # wichtig: Session-Änderung mitteilen
-        
+
         # Welcher Button wurde gedrückt?
         filter_btn = request.form.get("filter_btn")
         
@@ -134,23 +134,40 @@ def menue():
         start_date, end_date = filterdatum_auslesen(filter_btn)
         session["start_date"] = start_date
         session["end_date"] = end_date
+
+        selected_konten = request.form.getlist("konto")
+        session["selected_konten"] = selected_konten
+
+        session.modified = True  # wichtig: Session-Änderung mitteilen
     else:
         if "start_date" in session and "end_date" in session:
             start_date = session["start_date"]
             end_date = session["end_date"]
         # Aus Session auslesen, oder alle Kategorien auswählen (Default)
-        if "selected_kategorien" in session and session["selected_kategorien"]:
+        if "selected_kategorien" in session:
             selected_kategorien = session["selected_kategorien"]
         else:
             # Beim ersten Laden: alle Kategorie-IDs auswählen
             selected_kategorien = [str(kategorie.ID) for kategorie in kategorien]
+            selected_kategorien.append("null")  # "Keine Kategorie" immer mit in die Filterung aufnehmen
+        
+        # Aus Session auslesen, oder alle Konten auswählen (Default)
+        if "selected_konten" in session:
+            selected_konten = session["selected_konten"]
+        else:
+            selected_konten = [str(konto.IBAN) for konto in konten]
+
+    transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
+    print(len(transaktionen))
     
     return render_template("menue/menue.html",
                           user_name=session.get("name"),
                           kategorien=kategorien,
                           selected_kategorien=selected_kategorien,
                           start_date=start_date,
-                          end_date=end_date)
+                          end_date=end_date,
+                          konten=konten,
+                          selected_konten=selected_konten)
 
 #Menue ausliefern
 @app.route("/data_input")
