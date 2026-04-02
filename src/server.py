@@ -115,6 +115,59 @@ def logout():
 @app.route("/menue", methods=["GET", "POST"])
 @login_required
 def menue():
+    filter_daten = get_filter_daten()
+    kategorien = filter_daten["kategorien"]
+    selected_kategorien = filter_daten["selected_kategorien"]
+    start_date = filter_daten["start_date"]
+    end_date = filter_daten["end_date"]
+    konten = filter_daten["konten"]
+    selected_konten = filter_daten["selected_konten"]
+    
+    transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
+    print(len(transaktionen))
+    
+    return render_template("menue/menue.html",
+                            action="menue",
+                            user_name=session.get("name"),
+                            kategorien=kategorien,
+                            selected_kategorien=selected_kategorien,
+                            start_date=start_date,
+                            end_date=end_date,
+                            konten=konten,
+                            selected_konten=selected_konten)
+
+#Menue ausliefern
+@app.route("/data_input")
+@login_required
+def data_input():
+    return render_template("data_input.html", user_name=session.get("name"))
+
+#Menue ausliefern
+@app.route("/data_edit", methods=["GET", "POST"])
+@login_required
+def data_edit():
+    filter_daten = get_filter_daten()
+    kategorien = filter_daten["kategorien"]
+    selected_kategorien = filter_daten["selected_kategorien"]
+    start_date = filter_daten["start_date"]
+    end_date = filter_daten["end_date"]
+    konten = filter_daten["konten"]
+    selected_konten = filter_daten["selected_konten"]
+    
+    transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
+    print(len(transaktionen))
+    
+    return render_template("data_edit.html",
+                            action="data_edit",
+                            user_name=session.get("name"),
+                            kategorien=kategorien,
+                            selected_kategorien=selected_kategorien,
+                            start_date=start_date,
+                            end_date=end_date,
+                            konten=konten,
+                            selected_konten=selected_konten)
+
+def get_filter_daten() -> list[TransaktionDTO]:
     kategorien:list[KategorieDTO] = db.get_kategorien_by_kontoinhaber_id(session.get("user_id"))
     konten:list[KontoDTO] = db.get_konto_by_user_id(session.get("user_id"))
     
@@ -157,29 +210,12 @@ def menue():
         else:
             selected_konten = [str(konto.IBAN) for konto in konten]
 
-    transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
-    print(len(transaktionen))
-    
-    return render_template("menue/menue.html",
-                          user_name=session.get("name"),
-                          kategorien=kategorien,
-                          selected_kategorien=selected_kategorien,
-                          start_date=start_date,
-                          end_date=end_date,
-                          konten=konten,
-                          selected_konten=selected_konten)
-
-#Menue ausliefern
-@app.route("/data_input")
-@login_required
-def data_input():
-    return render_template("data_input.html", user_name=session.get("name"))
-
-#Menue ausliefern
-@app.route("/data_edit")
-@login_required
-def data_edit():
-    return render_template("data_edit.html", user_name=session.get("name"))
+    return {"kategorien": kategorien,
+            "selected_kategorien": selected_kategorien,
+            "start_date": start_date,
+            "end_date": end_date,
+            "konten": konten,
+            "selected_konten": selected_konten}
 
 def filterdatum_auslesen(filter_btn):
     today = datetime.now().date()

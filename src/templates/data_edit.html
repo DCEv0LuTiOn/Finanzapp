@@ -5,92 +5,19 @@
         <meta charset="utf-8">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/data_edit.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/menue/filter.css') }}">
     </header>
     <style>
-        body{
-            background-color: #c1ddff;
-            margin: 0;
-            display:flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-family: Arial, sans-serif;
-        }
-        /* Filterbereich */
-        .filter-container{
-            background:white;
-            padding:15px;
-            border-radius:10px;
-            box-shadow:5px 5px 15px rgba(0,0,0,0.3);
-            display:flex;
-            gap:20px;
-            justify-content:center;
-            align-items:center;
-            margin-bottom:10px;
-        }   
+
+
+
         
-        .main-container{
-            display:flex;
-            flex-direction:column;
-            padding:15px;
-        }
-
-        .btn-style{
-           background-color:white;
-           border: 1px solid;
-           border-color: black; 
-        }
-
-        .table-wrapper{
-            background:white;
-            padding:15px;
-            border-radius:10px;
-            box-shadow:5px 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .data-table{
-            width:100%;
-            border-collapse:collapse;
-            font-size:14px;
-        }
-
-        .data-table th{
-            background:#e6f0ff;
-            padding:10px;
-            text-align:left;
-            border-bottom:2px solid #bcd0ff;
-        }
-
-        .data-table td{
-            padding:8px;
-            border-bottom:1px solid #ddd;
-        }
-
-        .data-table tr:hover{
-            background:#f5faff;
-        }
 
     </style>
-    {% include 'navigation.html' %}
     <body>
-        <div clss="menue-container">
-            <!-- Filter -->
-            <div class="filter-container">
-                <label>Jahr:</label>
-                <select>
-                    <option>2022</option>
-                    <option>2023</option>
-                    <option>2024</option>
-                </select>
-                <label>Monat:</label>
-                <select>
-                    <option>Alle</option>
-                    <option>Januar</option>
-                    <option>Februar</option>
-                    <option>März</option>
-                </select>
-                <button class="btn-style">Filter anwenden</button>
-            </div>
+        {% include 'navigation.html' %}
+        <div class="main-container">
+            {% include 'menue/filter.html' %}
             <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
