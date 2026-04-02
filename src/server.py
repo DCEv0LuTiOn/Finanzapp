@@ -124,6 +124,9 @@ def menue():
     selected_konten = filter_daten["selected_konten"]
     
     transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
+    ausgaben_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag < 0])
+    einnahmen_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag > 0])
+    kontostand = ausgaben_summe + einnahmen_summe
     print(len(transaktionen))
     
     return render_template("menue/menue.html",
@@ -134,7 +137,11 @@ def menue():
                             start_date=start_date,
                             end_date=end_date,
                             konten=konten,
-                            selected_konten=selected_konten)
+                            selected_konten=selected_konten,
+                            transaktionen=transaktionen,
+                            ausgaben_summe=ausgaben_summe,
+                            einnahmen_summe=einnahmen_summe,
+                            kontostand=kontostand)
 
 #Menue ausliefern
 @app.route("/data_input")
@@ -165,7 +172,8 @@ def data_edit():
                             start_date=start_date,
                             end_date=end_date,
                             konten=konten,
-                            selected_konten=selected_konten)
+                            selected_konten=selected_konten,
+                            transaktionen=transaktionen)
 
 def get_filter_daten() -> list[TransaktionDTO]:
     kategorien:list[KategorieDTO] = db.get_kategorien_by_kontoinhaber_id(session.get("user_id"))
