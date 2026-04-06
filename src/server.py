@@ -128,22 +128,42 @@ def menue():
     transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
     ausgaben_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag < 0])
     einnahmen_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag > 0])
-    kontostand = ausgaben_summe + einnahmen_summe
-    print(len(transaktionen))
+    kontostand = sum([konto.Saldo for konto in konten if konto.IBAN in selected_konten])
+    kategorie_dict = {}
+    for kategorie in kategorien:
+        if str(kategorie.ID) in selected_kategorien:
+            kategorie_dict[kategorie.Bezeichnung] = {"ausgaben": 0, "einnahmen": 0}
+            for transaktion in transaktionen:
+                if transaktion.Kategorie_ID == kategorie.ID:
+                    if transaktion.Betrag < 0:
+                        kategorie_dict[kategorie.Bezeichnung]["ausgaben"] += transaktion.Betrag
+                    else:
+                        kategorie_dict[kategorie.Bezeichnung]["einnahmen"] += transaktion.Betrag
     
+    # "Keine Kategorie" mit in die Auswertung aufnehmen (Transaktionen ohne Kategorie_ID)
+    if "null" in selected_kategorien:
+            kategorie_dict["Keine Kategorie"] = {"ausgaben": 0, "einnahmen": 0}
+            for transaktion in transaktionen:
+                if transaktion.Kategorie_ID == None:
+                    if transaktion.Betrag < 0:
+                        kategorie_dict["Keine Kategorie"]["ausgaben"] += transaktion.Betrag
+                    else:
+                        kategorie_dict["Keine Kategorie"]["einnahmen"] += transaktion.Betrag
+
+
     return render_template("menue/menue.html",
-                            action="menue",
-                            user_name=session.get("name"),
-                            kategorien=kategorien,
-                            selected_kategorien=selected_kategorien,
-                            start_date=start_date,
-                            end_date=end_date,
-                            konten=konten,
-                            selected_konten=selected_konten,
-                            transaktionen=transaktionen,
-                            ausgaben_summe=ausgaben_summe,
-                            einnahmen_summe=einnahmen_summe,
-                            kontostand=kontostand)
+                            action="menue", # filter
+                            user_name=session.get("name"), # navigation
+                            kategorien=kategorien, # filter
+                            selected_kategorien=selected_kategorien, # filter
+                            start_date=start_date, # filter
+                            end_date=end_date, # filter
+                            konten=konten, # filter
+                            selected_konten=selected_konten, # filter
+                            ausgaben_summe=ausgaben_summe, # stats
+                            einnahmen_summe=einnahmen_summe, # stats
+                            kontostand=kontostand, # stats
+                            kategorie_dict=kategorie_dict) # charts
 
 #Menue ausliefern
 @app.route("/data_input")

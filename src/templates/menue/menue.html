@@ -2,152 +2,89 @@
 <html lang="de">
     <head>
         <meta charset="UTF-8">
-        <title>Finanzapp</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Finanzapp - Menü</title>
+        
         <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/menue/menue.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/menue/filter.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/menue/chart.css') }}">
     </head>
     <body>
-        <style>
-
-            /* Statistikbereich */
-
-            .stats-container{
-                background:white;
-                padding:20px;
-                border-radius:10px;
-                box-shadow:5px 5px 15px rgba(0,0,0,0.3);
-                display:flex;
-                justify-content:space-around;
-                text-align:center;
-            }
-
-            .stat-box{
-                padding:10px 20px;
-            }
-
-            .stat-title{
-                font-weight:bold;
-                margin-bottom:5px;
-            }
-
-            .stat-value{
-                font-size:20px;
-                color:#2c6ed5;
-            }
-
-            /* Diagrammcontainer */
-
-            .menue-container{
-                display: flex;
-                flex-direction: row;
-                gap: 60px;
-                padding: 30px;
-                background-color: white; 
-                border-radius: 10px;
-                box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
-            }
-
-            .diagram{
-                display:flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            /* Kuchendiagramm */
-
-            .piechart{
-                width:200px;
-                height:200px;
-                border-radius:50%;
-                box-shadow: 5px 5px 15px rgba(0,0,0,0.6);
-                background: conic-gradient(
-                    red 0% 25%,
-                    blue 25% 60%,
-                    yellow 60% 75%,
-                    green 75% 100%
-                );
-            }
-
-            /* Balkendiagramm */
-
-            .bar-container{
-                display:flex;
-                justify-content: space-around;
-                align-items:flex-end;
-                height:200px;
-                border-left:2px solid black;
-                border-bottom:2px solid black;
-                padding:10px;
-                gap:15px;
-
-            }
-
-            .bar{
-                width:40px;
-                background-color:#4a90e2;
-            }
-
-            .bar1{ height:60px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
-            .bar2{ height:140px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
-            .bar3{ height:90px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
-            .bar4{ height:170px; box-shadow: 5px 5px 15px rgba(0,0,0,0.6);}
-
-            .label{
-                text-align:center;
-                margin-top:5px;
-            }
-
-        </style>
         {% include 'navigation.html' %}
+        
         <div class="main-container">
             {% include 'menue/filter.html' %}
-            <!-- Aktuelle Daten -->
-            <div class="main-container-data">
-                <div class="stats-container">
+            
+            <main class="main-container-data">
+                
+                <section class="stats-container">
                     <div class="stat-box">
                         <div class="stat-title">Kontostand</div>
-                            <div class="stat-value">{{kontostand | round(2)}} €</div>
-                        </div>
+                        <div class="stat-value">{{ kontostand | round(2) }} €</div>
+                    </div>
                     <div class="stat-box">
                         <div class="stat-title">Ausgaben insgesamt</div>
-                        <div class="stat-value">{{ausgaben_summe | round(2)}} €</div>
+                        <div class="stat-value" style="color: #e74c3c;">
+                            {{ ausgaben_summe | round(2) }} €
+                        </div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-title">Einnahmen insgesamt</div>
-                        <div class="stat-value">{{einnahmen_summe | round(2)}} €</div>
+                        <div class="stat-value" style="color: #27ae60;">
+                            {{ einnahmen_summe | round(2) }} €
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Diagramme -->
-                <div class="menue-container">
-                    <div class="diagram">
-                        <h2>Kuchendiagramm</h2>
-                        <div class="piechart"></div>
-                    </div>
-                    <div class="diagram">
-                        <h2>Balkendiagramm</h2>
-                        <div class="bar-container">
-                            <div>
-                                <div class="bar bar1"></div>
-                                <div class="label">Jan</div>
+                <div id="chart-data-bridge" 
+                     data-json='{{ kategorie_dict | tojson }}' 
+                     style="display:none;">
+                </div>
+                <div class="menue-container-charts">
+                    
+                    <div class="charts-column">
+                        <div class="chart-card">
+                            <h3>Ausgaben</h3>
+                            <div class="canvas-wrapper">
+                                <canvas id="chartAusgaben"></canvas>
                             </div>
-                            <div>
-                                <div class="bar bar2"></div>
-                                <div class="label">Feb</div>
-                            </div>
-                            <div>
-                                <div class="bar bar3"></div>
-                                <div class="label">Mär</div>
-                            </div>
-                            <div>
-                                <div class="bar bar4"></div>
-                                <div class="label">Apr</div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Einnahmen</h3>
+                            <div class="canvas-wrapper">
+                                <canvas id="chartEinnahmen"></canvas>
                             </div>
                         </div>
                     </div>
+
+                    <div class="chart-card bar-card"> 
+                        <h3>Gewinn / Verlust pro Kategorie</h3>
+                        <div class="canvas-wrapper bar-wrapper">
+                            <canvas id="chartSaldo"></canvas>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
+            </main>
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="{{ url_for('static', filename='js/chart_logic.js') }}"></script>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const bridge = document.getElementById('chart-data-bridge');
+                if (bridge && bridge.dataset.json) {
+                    try {
+                        const data = JSON.parse(bridge.dataset.json);
+                        // Diese Funktion kommt aus deiner chart_logic.js
+                        initFinanceChartsFromDict(data);
+                    } catch (e) {
+                        console.error("Fehler beim Initialisieren der Charts:", e);
+                    }
+                }
+            });
+        </script>
     </body>
 </html>

@@ -1,0 +1,59 @@
+/* 1. Den Haupt-Container auf volle 100% zwingen */
+.menue-container-charts {
+    display: flex;
+    flex-direction: row; 
+    flex-wrap: nowrap;
+    gap: 20px;
+    width: 100%;          /* Volle Breite */
+    padding: 0 10px;      /* Minimaler Sicherheitsabstand zum Rand */
+    margin-top: 20px;
+    align-items: stretch; /* Hält alles bündig */
+    box-sizing: border-box;
+}
+
+/* 2. Linke Spalte (Doughnuts) - Massiv präsent */
+.charts-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* Wir geben den Donuts eine feste, große Basis */
+    flex: 0 0 600px; 
+    min-width: 500px;
+}
+
+/* 3. Rechte Karte (Balken) - Nimmt den kompletten restlichen Platz ein */
+.bar-card {
+    flex: 1; 
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 4. Canvas-Größen (Hier steuerst du die vertikale Größe) */
+.canvas-wrapper {
+    position: relative;
+    height: 380px; /* Sehr große Donuts */
+    width: 100%;
+}
+
+.bar-wrapper {
+    position: relative;
+    width: 100%;
+    flex-grow: 1;  /* Füllt die Höhe exakt bis zur Unterkante der Donuts */
+    min-height: 0;
+}
+
+/* 5. Karten-Styling */
+.chart-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-top: 4px solid #4e73df;
+}
+
+.chart-card h3 {
+    text-align: center;
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+}
