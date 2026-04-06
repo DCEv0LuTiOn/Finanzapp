@@ -6,128 +6,118 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/data_input.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
     <style>
-        body {
-            margin: 0;
-            background-color: #c1ddff;
-            font-family: Arial, sans-serif;
-        }
-
-        .page-container {
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            gap: 20px;
-        }
-
-        /* Filter-Leiste */
-        .filter-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            width: fit-content;
-        }
-
-        .btn-style {
-            background-color: #4a90e2;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Tabelle */
-        .table-wrapper {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background-color: #4a90e2;
-            color: white;
-            padding: 10px;
-        }
-
-        td {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        /* Dashboard-Kacheln */
-        .stats-container {
-            display: flex;
-            gap: 20px;
-        }
-
-        .stat-box {
-            flex: 1;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* Diagramme */
-        .charts-container {
-            display: flex;
-            gap: 20px;
-        }
-
-        .chart-box {
-            flex: 1;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        
     </style>
 </header>
 
 <body>
     {% include 'navigation.html' %}
-
+    
+    
     <div class="page-container">
+    <div class="dual-form-container">
 
-        <!-- Filter -->
-        <div class="filter-container">
-            <label>Jahr:</label>
-            <select>
-                <option>2022</option>
-                <option>2023</option>
-                <option>2024</option>
-            </select>
+    <!-- Linkes Formular: Filter -->
+    <form class="form-box" method="post">
+        <h3>Filter</h3>
 
-            <label>Monat:</label>
-            <select>
-                <option>Alle</option>
-                <option>Januar</option>
-                <option>Februar</option>
-                <option>März</option>
-            </select>
+        <label>ID:</label>
+        <input type="text" name="txt_id_filter">
 
-            <button class="btn-style">Filter anwenden</button>
-        </div>
+        <label>IBAN Auftragskonto:</label>
+        <input type="text" name="txt_iban_auftragskonto_filter">
+
+        <label>IBAN Zahlungsbeteiligter:</label>
+        <input type="text" name="txt_iban_zahlungsbeteiligter_filter">
+
+        <label>Name Zahlungsbeteiligter:</label>
+        <input type="text" name="txt_name_zahlungsbeteiligter_filter">
+
+        <label>Verwendungszweck:</label>
+        <input type="text" name="txt_verwendungszweck_filter">
+
+        <label>Betrag:</label>
+        <input type="text" name="txt_betrag_filter">
+
+        <label>Saldo nach Buchung:</label>
+        <input type="text" name="txt_saldo_nach_buchung_filter">
+
+        <label>Transaktionsdatum von:</label>
+        <input type="date" name="txt_transaktionsdatum_von_filter">
+
+        <label>Transaktionsdatum bis:</label>
+        <input type="date" name="txt_transaktionsdatum_bis_filter">
+
+        <label>Buchungsart:</label>
+        <input type="text" name="txt_buchungsart_filter">
+
+        <label>Kategorie:</label>
+        <input type="text" name="txt_kategorie_filter">
+
+        <label>Bemerkung:</label>
+        <input type="text" name="txt_bemerkung_filter">
+
+        <button type="submit" class="btn-green" name="btn_filter" value="filter">Filter anwenden</button>
+    </form>
+
+
+    <!-- Rechtes Formular: Datensatz einfügen -->
+    <form class="form-box" method="post">
+        <h3>Datensatz einfügen</h3>
+
+        <!--<label>ID:</label>-->
+        <!--<input type="text" name="id">-->
+
+        <label>IBAN Auftragskonto:</label>
+        <input type="text" name="txt_iban_auftragskonto_insert">
+
+        <label>IBAN Zahlungsbeteiligter:</label>
+        <input type="text" name="txt_iban_zahlungsbeteiligter_insert">
+
+        <label>Name Zahlungsbeteiligter:</label>
+        <input type="text" name="txt_name_zahlungsbeteiligter_insert">
+
+        <label>Verwendungszweck:</label>
+        <input type="text" name="txt_verwendungszweck_insert">
+
+        <label>Betrag:</label>
+        <input type="text" name="txt_betrag_insert">
+
+        <label>Saldo nach Buchung:</label>
+        <input type="text" name="txt_saldo_nach_buchung_insert">
+
+        <label>Transaktionsdatum:</label>
+        <input type="date" name="txt_transaktionsdatum_insert">
+
+        <label>Buchungsart ID:</label>
+        <input type="text" name="txt_buchungsart_insert">
+
+        <label>Kategorie ID:</label>
+        <input type="text" name="txt_kategorie_insert">
+
+        <label>Bemerkung:</label>
+        <input type="text" name="txt_bemerkung_insert">
+
+        <button type="submit" class="btn-blue" name="btn_insert" value="insert">Datensatz einfügen</button>
+    </form>
+
+</div>
+
+
+        <form method="post" enctype="multipart/form-data">
+            <div class="upload-container">
+                <label for="csvUpload">CSV hochladen:</label>
+                <input type="file" name="file_csv_Upload" id="csv_upload" accept=".csv">
+                <button class="btn-style" type="submit" name="btn_upload" value="upload">Upload</button>
+            </div>
+        </form>
 
         <!-- Dashboard-Kacheln -->
-        <div class="stats-container">
-            <div class="stat-box">Kontostand<br>2.350 €</div>
-            <div class="stat-box">Ausgaben insgesamt<br>1.120 €</div>
-            <div class="stat-box">Einnahmen insgesamt<br>3.470 €</div>
-        </div>
+        <!-- <div class="stats-container">                                      -->
+        <!--     <div class="stat-box">Kontostand<br>2.350 €</div>-->
+        <!--     <div class="stat-box">Ausgaben insgesamt<br>1.120 €</div>-->
+        <!--     <div class="stat-box">Einnahmen insgesamt<br>3.470 €</div>-->
+        <!-- </div>-->
 
         <!-- Tabelle -->
         <div class="table-wrapper">
@@ -138,27 +128,33 @@
                         <th>IBAN_Auftragskonto</th>
                         <th>IBAN_Zahlungsbeteiligter</th>
                         <th>Verwendungszweck</th>
-                        <th>Beitrag</th>
+                        <th>Betrag</th>
                         <th>Saldo_n_Buchung</th>
                         <th>Datum</th>
-                        <th>Buchungsart_ID</th>
+                        <th>Buchungsart</th>
                         <th>Kategorie</th>
                         <th>Bemerkung</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {% for row in data %}
                     <tr>
-                        <td>1</td>
-                        <td>Beispiel A</td>
-                        <td>123</td>
-                        <td>2024-01-10</td>
+                        <td>{{ row.ID }}</td>
+                        <td>{{ row.IBAN_Auftragskonto }}</td>
+                        <td>{{ row.IBAN_Zahlungsbeteiligter }}</td>
+                        <td>{{ row.Verwendungszweck }}</td>
+                        <td>{{ row.Betrag }}</td>
+                        <td>{{ row.Saldo_nach_Buchung }}</td>
+                        <td>{{ row.Transaktions_Datum }}</td>
+                        <td>{{ row.Buchungsart}}</td>
+                        <td>{{ row.Kategorie}}</td>
+                        <td>{{ row.Bemerkung}}</td>
+                        <td><button class="btn-style edit-btn"> 
+                            <img src="img/recyclebin.png" class="btn-icon">
+                        </button>
+                    </td>
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Beispiel B</td>
-                        <td>456</td>
-                        <td>2024-02-15</td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

@@ -54,6 +54,21 @@ class TransaktionDTO:
     Kategorie_ID: Optional[int] = None
     Bemerkung: Optional[str] = None
 
+@dataclass
+class DataInputDTOView:
+    ID: Optional[int] = None
+    IBAN_Auftragskonto: Optional[str] = None
+    IBAN_Zahlungsbeteiligter: Optional[str] = None
+    Name_Zahlungsbeteiligter: Optional[str] = None
+    Verwendungszweck: Optional[str] = None
+    Betrag: Optional[float] = None
+    Saldo_nach_Buchung: Optional[float] = None
+    Transaktions_Datum: Optional[str] = None
+    Bemerkung: Optional[str] = None
+    Kategorie: Optional[int] = None
+    Buchungsart: Optional[str] = None
+
+
 # @dataclass
 # class KontoViewDTO:
 #     IBAN: Optional[str] = None

@@ -5,6 +5,8 @@ from dtos import *
 import hashlib
 import calendar
 from datetime import datetime, timedelta
+import csv
+
 
 # Flask App definieren, static_folder auf public setzen
 app = Flask(
@@ -143,19 +145,28 @@ def menue():
             selected_kategorien = session["selected_kategorien"]
         else:
             # Beim ersten Laden: alle Kategorie-IDs auswählen
-            selected_kategorien = [str(kategorie.ID) for kategorie in kategorien]
-    
+            if kategorien is not None:
+                selected_kategorien = [str(kategorie.ID) for kategorie in kategorien]
+                return render_template("menue/menue.html",
+                    user_name=session.get("name"),
+                    kategorien=kategorien,
+                    selected_kategorien=selected_kategorien,
+                    start_date=start_date,
+                    end_date=end_date)
+
     return render_template("menue/menue.html",
                           user_name=session.get("name"),
-                          kategorien=kategorien,
-                          selected_kategorien=selected_kategorien,
                           start_date=start_date,
                           end_date=end_date)
+            
+    
+
 
 #Menue ausliefern
 @app.route("/data_input")
 @login_required
 def data_input():
+
     return render_template("data_input.html", user_name=session.get("name"))
 
 #Menue ausliefern
@@ -216,6 +227,138 @@ def filterdatum_auslesen(filter_btn):
         end_date = ""
     
     return (start_date, end_date)
+
+
+#Dateininput 
+
+@app.route("/data_input", methods=["POST"])
+def data_input_post():
+
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #Upload Button
+    if  request.form.get("btn_upload") == "upload":
+    # "uploaded_file" ist der Name des Input-Felds im HTML-Formular
+        uploaded_file = request.files.get("file_csv_Upload") 
+        if uploaded_file:
+            list_data = extract_data(uploaded_file)
+
+            return render_template("data_input.html", data=list_data)  
+ 
+    
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #Filter Button
+    if  request.form.get("btn_filter") == "filter":
+
+        if request.form.get("txt_transaktionsdatum_von_filter"):
+            datum_von = datetime.strptime(request.form.get("txt_transaktionsdatum_von_filter"), "%Y-%m-%d")
+            datum_von = str(datum_von.strftime("%d.%m.%Y"))
+        if request.form.get("txt_transaktionsdatum_bis_filter"):
+            datum_bis = datetime.strptime(request.form.get("txt_transaktionsdatum_bis_filter"), "%Y-%m-%d")
+            datum_bis = str(datum_bis.strftime("%d.%m.%Y"))
+
+        transaction = TransaktionDTO(   
+                ID=request.form.get("txt_id_filter"),
+                IBAN_Zahlungsbeteiligter=request.form.get("txt_iban_zahlungsbeteiligter_filter"),
+                Name_Zahlungsbeteiligter=request.form.get("txt_name_zahlungsbeteiligter_filter"),
+                Verwendungszweck=request.form.get("txt_verwendungszweck_filter"),
+                Betrag=float(request.form.get("Saldo nach Buchung").replace(",", ".") if request.form.get("Saldo nach Buchung") else 0.00),
+                Transaktions_Datum= datum_von if request.form.get("txt_transaktionsdatum_von_filter") else None,
+
+                Buchungsart_ID=db.get_id_by_buchungsart(request.form.get("txt_buchungsart_filter")).ID if request.form.get("txt_buchungsart_filter") else None,
+                Kategorie_ID=db.get_id_by_kategorie(request.form.get("txt_kategorie_filter"), session.get("user_id")).ID if request.form.get("txt_kategorie_filter") else None,
+                Saldo_nach_Buchung=float(request.form.get("txt_saldo_nach_buchung_filter").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_filter") else 0.00)
+            )
+        data = db.get_filtered_transaktionen(transaction, session.get("user_id"), datum_bis if request.form.get("txt_transaktionsdatum_bis_filter") else None)
+
+        if data is not None:
+            return render_template("data_input.html", data=data)
+        else: 
+            return render_template("data_input.html")
+    
+    
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #Insert Button
+    if  request.form.get("btn_insert") == "insert":    
+        pass
+    return redirect(url_for("data_input"))
+
+'''
+In dieser Funktion werden die Transaktionsdaten ausgelesen, geprüft und in die Datenbanktabellen eingefügt.
+'''
+def extract_data(file) -> list[TransaktionDTO]:
+    
+    list_data = []
+    if file:
+
+        stream = file.stream.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(stream, delimiter=';')
+
+        first_row = next(reader, None)
+
+        new_bank = BankDTO(
+            BLZ=first_row["IBAN Auftragskonto"][4:12],
+            Name=first_row["Bankname Auftragskonto"]
+        )
+
+        if db.get_bank_by_blz(new_bank.BLZ) is None:
+            db.execute_insert_dtos(new_bank)
+
+        waehrung = WaehrungDTO(Waehrung=first_row["Waehrung"])
+        if db.get_id_by_waehrung(first_row.get("Waehrung")) is None:
+            db.execute_insert_dtos(waehrung)
+
+        new_konto = KontoDTO(
+            IBAN=first_row["IBAN Auftragskonto"],
+            BIC=first_row["BIC Auftragskonto"],
+            BLZ=first_row["IBAN Auftragskonto"][4:12],
+            Konto_Name=db.get_user_by_id(session.get("user_id")).Vorname + " " + db.get_user_by_id(session.get("user_id")).Nachname + " Konto",
+            Kontoinhaber_ID=session.get("user_id"),
+            Saldo=0.00,
+            Waehrung_ID=db.get_id_by_waehrung(first_row.get("Waehrung")).ID
+        )
+
+        if db.get_konto_by_iban(new_konto.IBAN) is None:
+            db.execute_insert_dtos(new_konto)   
+
+        new_buchungsart = BuchungsartDTO(Buchungsart=first_row.get("Buchungstext"))
+        if db.get_id_by_buchungsart(new_buchungsart.Buchungsart) is None: 
+                db.execute_insert_dtos(new_buchungsart)
+
+
+        transaction = TransaktionDTO(   
+                IBAN_Auftragskonto=first_row.get("IBAN Auftragskonto"),
+                IBAN_Zahlungsbeteiligter=first_row.get("IBAN Zahlungsbeteiligter"),
+                Name_Zahlungsbeteiligter=first_row.get("Name Zahlungsbeteiligter"),
+                Verwendungszweck=first_row.get("Verwendungszweck"),
+                Betrag=float(first_row.get("Betrag").replace(",", ".")),
+                Transaktions_Datum=first_row.get("Valutadatum"),
+                Buchungsart_ID=db.get_id_by_buchungsart(first_row.get("Buchungstext")).ID,
+                Saldo_nach_Buchung=float(first_row.get("Saldo nach Buchung").replace(",", ".") if first_row.get("Saldo nach Buchung") else 0.00)
+            )
+        db.execute_insert_dtos(transaction)        
+
+        for row in reader:
+            
+            new_buchungsart = BuchungsartDTO(Buchungsart=row.get("Buchungstext"))
+            if db.get_id_by_buchungsart(new_buchungsart.Buchungsart) is None: 
+                db.execute_insert_dtos(new_buchungsart)
+
+            transaction = TransaktionDTO(   
+                IBAN_Auftragskonto=row.get("IBAN Auftragskonto"),
+                IBAN_Zahlungsbeteiligter=row.get("IBAN Zahlungsbeteiligter"),
+                Name_Zahlungsbeteiligter=row.get("Name Zahlungsbeteiligter"),
+                Verwendungszweck=row.get("Verwendungszweck"),
+                Betrag=float(row.get("Betrag").replace(",", ".")),
+                Transaktions_Datum=row.get("Valutadatum"),
+                Buchungsart_ID=db.get_id_by_buchungsart(row.get("Buchungstext")).ID,
+                Saldo_nach_Buchung=float(row.get("Saldo nach Buchung").replace(",", ".") if row.get("Saldo nach Buchung") else 0.00)
+            )
+
+            list_data.append(transaction)
+
+        db.execute_insert_dtos(list_data)
+    return list_data
+
 
 
 if __name__ == "__main__":

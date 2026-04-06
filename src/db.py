@@ -1,6 +1,8 @@
+from shlex import join
 import sqlite3
 import sys
 from contextlib import closing
+from tkinter import LEFT
 from dtos import *
 
 def get_dto_data(dto:object): # Daten aus dto lesen und zurück geben
@@ -26,6 +28,8 @@ def execute_select_dto_list(sql:str,dto_class,wheres:dict) -> list[object]: # sq
         connection.row_factory = sqlite3.Row            # wird von sqlight3 benötigt das man spaltennamen im cursor mit cursor.description rauslesen kann
         with closing(connection.cursor()) as cursor:
             cursor.execute(sql,wheres)
+            print(sql)
+            print(wheres)
             column_names = [col[0] for col in cursor.description] # Spaltennamen aus dem select holen
             results = []
             for row in cursor.fetchall(): # alle daten vom select holen
@@ -74,8 +78,10 @@ def execute_insert_dtos(dtos:object | list[object]):
             for dto in dtos:
                 table_name,fields_to_insert,values = get_dto_data(dto) # Daten aus DTO lesen
                 # ID entfernen da diese autonicrementet werden
-                fields_to_insert.remove("ID")
-                del values["ID"]
+                if "ID" in fields_to_insert:
+                    fields_to_insert.remove("ID")
+                    del values["ID"]
+
                 # sql mit Named Parametern (z.b. insert table(name,email) values (:Name, :Email))
                 sql = f"INSERT INTO {table_name} ({', '.join(fields_to_insert)}) VALUES ({', '.join([":" + p for p in fields_to_insert])})"
                 connection.execute(sql, values)
@@ -109,17 +115,119 @@ def execute_update_dtos(dtos:object | list[object]):
             print("DB Fehler:", e)
             raise
 
+
 def get_user_by_email(email):
     wheres = {'Email':email}
     sql = "SELECT * FROM Kontoinhaber where Email = :Email"
     users = execute_select_dto(sql,KontoinhaberDTO,wheres)
     return users
 
+def get_user_by_id(user_id) -> KontoinhaberDTO:
+    wheres = {'ID':user_id}
+    sql = "SELECT * FROM Kontoinhaber where ID = :ID"
+    user = execute_select_dto(sql,KontoinhaberDTO,wheres)
+    return user
+
 def get_kategorien_by_kontoinhaber_id(kontoinhaber_id) -> list[KategorieDTO]:
     wheres = {'Kontoinhaber_ID':kontoinhaber_id}
     sql = "SELECT * FROM Kategorie where Kontoinhaber_ID = :Kontoinhaber_ID"
     kategorien = execute_select_dto_list(sql,KategorieDTO,wheres)
     return kategorien
+
+
+def get_konto_by_iban(iban) -> KontoDTO:
+    wheres = {'IBAN':iban}
+    sql = "SELECT * FROM Konto where IBAN = :IBAN"
+    konto = execute_select_dto(sql,KontoDTO,wheres)
+    return konto
+
+
+def get_id_by_waehrung(waehrung) -> WaehrungDTO:
+    wheres = {'Waehrung':waehrung}
+    sql = "SELECT * FROM Waehrung where Waehrung = :Waehrung"
+    waehrung_dto = execute_select_dto(sql,WaehrungDTO,wheres)
+    return waehrung_dto
+
+
+def get_id_by_buchungsart(buchungsart) -> BuchungsartDTO:
+    wheres = {'Buchungsart':buchungsart}
+    sql = "SELECT * FROM Buchungsart where Buchungsart = :Buchungsart"
+    buchungsart_dto = execute_select_dto(sql,BuchungsartDTO,wheres)
+    return buchungsart_dto
+
+def get_id_by_kategorie(bezeichnung, kontoinhaber_id) -> KategorieDTO:
+    wheres = {'Bezeichnung':bezeichnung, 'Kontoinhaber_ID':kontoinhaber_id}
+    sql = "SELECT * FROM Kategorie where Bezeichnung = :Bezeichnung and Kontoinhaber_ID = :Kontoinhaber_ID"
+    kategorie_dto = execute_select_dto(sql,KategorieDTO,wheres)
+    return kategorie_dto
+
+def get_bank_by_blz(blz) -> BankDTO:
+    wheres = {'BLZ':blz}
+    sql = "SELECT * FROM Bank where BLZ = :BLZ"
+    bank_dto = execute_select_dto(sql,BankDTO,wheres)
+    return bank_dto
+
+def get_filtered_transaktionen(transaktion_filter:TransaktionDTO, user_id:int, datumBis:str) -> list[TransaktionDTO]:
+    list_data = []
+    wheres = {"user_id": user_id}
+
+
+    sql = "SELECT t.ID,t.IBAN_Auftragskonto,t.IBAN_Zahlungsbeteiligter,t.Name_Zahlungsbeteiligter,t.Verwendungszweck,t.Betrag,t.Saldo_nach_Buchung,t.Transaktions_Datum,t.Bemerkung, k2.Bezeichnung as Kategorie, b.Buchungsart " \
+            "FROM Kontoinhaber i "\
+            "join Konto k ON i.ID = k.Kontoinhaber_ID "\
+            "JOIN Transaktion t ON k.IBAN = t.IBAN_Auftragskonto "\
+            "LEFT JOIN Kategorie k2 ON t.Kategorie_ID = k2.ID AND i.ID = k2.Kontoinhaber_ID "\
+            "LEFT JOIN Buchungsart b ON t.Buchungsart_ID = b.ID "\
+            "WHERE  i.ID =  :user_id"
+
+    if transaktion_filter.ID is not None and transaktion_filter.ID != 0 and str.strip(transaktion_filter.ID) != "":
+        sql += " and t.ID = :id"
+        wheres["id"] = transaktion_filter.ID
+    if transaktion_filter.IBAN_Auftragskonto is not None and str.strip(transaktion_filter.IBAN_Auftragskonto) != "":
+        sql += " and t.IBAN_Auftragskonto LIKE :IBAN_Auftragskonto"
+        wheres["IBAN_Auftragskonto"] = transaktion_filter.IBAN_Auftragskonto
+    if transaktion_filter.IBAN_Zahlungsbeteiligter is not None and str.strip(transaktion_filter.IBAN_Zahlungsbeteiligter) != "":
+        sql += " and t.IBAN_Zahlungsbeteiligter LIKE :IBAN_Zahlungsbeteiligter"
+        wheres["IBAN_Zahlungsbeteiligter"] = transaktion_filter.IBAN_Zahlungsbeteiligter
+    if  transaktion_filter.Name_Zahlungsbeteiligter is not None and str.strip(transaktion_filter.Name_Zahlungsbeteiligter) != "":
+        sql += " and t.Name_Zahlungsbeteiligter = :Name_Zahlungsbeteiligter"
+        wheres["Name_Zahlungsbeteiligter"] = transaktion_filter.Name_Zahlungsbeteiligter
+    if  transaktion_filter.Verwendungszweck is not None and str.strip(transaktion_filter.Verwendungszweck) != "":
+        sql += " and t.Verwendungszweck LIKE :Verwendungszweck"
+        wheres["Verwendungszweck"] = transaktion_filter.Verwendungszweck
+    if transaktion_filter.Betrag is not None and transaktion_filter.Betrag != 0:
+        sql += " and t.Betrag = :Betrag"
+        wheres["Betrag"] = transaktion_filter.Betrag
+    if transaktion_filter.Saldo_nach_Buchung is not None and transaktion_filter.Saldo_nach_Buchung != 0:
+        sql += " and t.Saldo_nach_Buchung = :Saldo_nach_Buchung" 
+        wheres["Saldo_nach_Buchung"] = transaktion_filter.Saldo_nach_Buchung
+    #Datum von   
+    if transaktion_filter.Transaktions_Datum is not None and str.strip(transaktion_filter.Transaktions_Datum) != "" and datumBis is not None and str.strip(datumBis) != "" and datumBis != "0000-00-00":
+        sql += " and (t.Transaktions_Datum BETWEEN :Transaktions_Datum_von AND :Transaktions_Datum_bis)"
+        wheres["Transaktions_Datum_von"] = transaktion_filter.Transaktions_Datum
+        wheres["Transaktions_Datum_bis"] = datumBis
+    elif transaktion_filter.Transaktions_Datum is not None and str.strip(transaktion_filter.Transaktions_Datum) != "":
+        sql += " and t.Transaktions_Datum = :Transaktions_Datum_von"
+        wheres["Transaktions_Datum_von"] = transaktion_filter.Transaktions_Datum
+
+    if transaktion_filter.Buchungsart_ID is not None and transaktion_filter.Buchungsart_ID != 0:
+        sql += " and t.Buchungsart_ID = :Buchungsart_ID"  
+        wheres["Buchungsart_ID"] = transaktion_filter.Buchungsart_ID
+    if transaktion_filter.Kategorie_ID is not None  and transaktion_filter.Kategorie_ID != 0:
+        sql += " and t.Kategorie_ID = :Kategorie_ID"
+        wheres["Kategorie_ID"] = transaktion_filter.Kategorie_ID
+    if transaktion_filter.Bemerkung is not None and str.strip(transaktion_filter.Bemerkung) != "":
+        sql += " and t.Bemerkung LIKE :Bemerkung"   
+        wheres["Bemerkung"] = transaktion_filter.Bemerkung
+    sql += " order by t.Transaktions_Datum"
+    print(sql)
+    
+    return execute_select_dto_list(sql,DataInputDTOView,wheres)
+
+               
+
+
+
 
 def __create_Database():
     with sqlite3.connect(__db_path) as connection:
