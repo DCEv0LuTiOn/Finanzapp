@@ -117,7 +117,69 @@ def logout():
 @app.route("/menue", methods=["GET", "POST"])
 @login_required
 def menue():
+    filter_daten = get_filter_daten()
+    kategorien = filter_daten["kategorien"]
+    selected_kategorien = filter_daten["selected_kategorien"]
+    start_date = filter_daten["start_date"]
+    end_date = filter_daten["end_date"]
+    konten = filter_daten["konten"]
+    selected_konten = filter_daten["selected_konten"]
+    
+    transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
+    ausgaben_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag < 0])
+    einnahmen_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag > 0])
+    kontostand = ausgaben_summe + einnahmen_summe
+    print(len(transaktionen))
+    
+    return render_template("menue/menue.html",
+                            action="menue",
+                            user_name=session.get("name"),
+                            kategorien=kategorien,
+                            selected_kategorien=selected_kategorien,
+                            start_date=start_date,
+                            end_date=end_date,
+                            konten=konten,
+                            selected_konten=selected_konten,
+                            transaktionen=transaktionen,
+                            ausgaben_summe=ausgaben_summe,
+                            einnahmen_summe=einnahmen_summe,
+                            kontostand=kontostand)
+
+#Menue ausliefern
+@app.route("/data_input")
+@login_required
+def data_input():
+    return render_template("data_input.html", user_name=session.get("name"))
+
+#Menue ausliefern
+@app.route("/data_edit", methods=["GET", "POST"])
+@login_required
+def data_edit():
+    filter_daten = get_filter_daten()
+    kategorien = filter_daten["kategorien"]
+    selected_kategorien = filter_daten["selected_kategorien"]
+    start_date = filter_daten["start_date"]
+    end_date = filter_daten["end_date"]
+    konten = filter_daten["konten"]
+    selected_konten = filter_daten["selected_konten"]
+    
+    transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
+    print(len(transaktionen))
+    
+    return render_template("data_edit.html",
+                            action="data_edit",
+                            user_name=session.get("name"),
+                            kategorien=kategorien,
+                            selected_kategorien=selected_kategorien,
+                            start_date=start_date,
+                            end_date=end_date,
+                            konten=konten,
+                            selected_konten=selected_konten,
+                            transaktionen=transaktionen)
+
+def get_filter_daten() -> list[TransaktionDTO]:
     kategorien:list[KategorieDTO] = db.get_kategorien_by_kontoinhaber_id(session.get("user_id"))
+    konten:list[KontoDTO] = db.get_konto_by_user_id(session.get("user_id"))
     
     # Default Datumsbereich
     start_date = ""
@@ -127,8 +189,7 @@ def menue():
     if request.method == "POST":
         selected_kategorien = request.form.getlist("kategorie")
         session["selected_kategorien"] = selected_kategorien
-        session.modified = True  # wichtig: Session-Änderung mitteilen
-        
+
         # Welcher Button wurde gedrückt?
         filter_btn = request.form.get("filter_btn")
         
@@ -136,44 +197,35 @@ def menue():
         start_date, end_date = filterdatum_auslesen(filter_btn)
         session["start_date"] = start_date
         session["end_date"] = end_date
+
+        selected_konten = request.form.getlist("konto")
+        session["selected_konten"] = selected_konten
+
+        session.modified = True  # wichtig: Session-Änderung mitteilen
     else:
         if "start_date" in session and "end_date" in session:
             start_date = session["start_date"]
             end_date = session["end_date"]
         # Aus Session auslesen, oder alle Kategorien auswählen (Default)
-        if "selected_kategorien" in session and session["selected_kategorien"]:
+        if "selected_kategorien" in session:
             selected_kategorien = session["selected_kategorien"]
         else:
             # Beim ersten Laden: alle Kategorie-IDs auswählen
-            if kategorien is not None:
-                selected_kategorien = [str(kategorie.ID) for kategorie in kategorien]
-                return render_template("menue/menue.html",
-                    user_name=session.get("name"),
-                    kategorien=kategorien,
-                    selected_kategorien=selected_kategorien,
-                    start_date=start_date,
-                    end_date=end_date)
+            selected_kategorien = [str(kategorie.ID) for kategorie in kategorien]
+            selected_kategorien.append("null")  # "Keine Kategorie" immer mit in die Filterung aufnehmen
+        
+        # Aus Session auslesen, oder alle Konten auswählen (Default)
+        if "selected_konten" in session:
+            selected_konten = session["selected_konten"]
+        else:
+            selected_konten = [str(konto.IBAN) for konto in konten]
 
-    return render_template("menue/menue.html",
-                          user_name=session.get("name"),
-                          start_date=start_date,
-                          end_date=end_date)
-            
-    
-
-
-#Menue ausliefern
-@app.route("/data_input")
-@login_required
-def data_input():
-
-    return render_template("data_input.html", user_name=session.get("name"))
-
-#Menue ausliefern
-@app.route("/data_edit")
-@login_required
-def data_edit():
-    return render_template("data_edit.html", user_name=session.get("name"))
+    return {"kategorien": kategorien,
+            "selected_kategorien": selected_kategorien,
+            "start_date": start_date,
+            "end_date": end_date,
+            "konten": konten,
+            "selected_konten": selected_konten}
 
 def filterdatum_auslesen(filter_btn):
     today = datetime.now().date()

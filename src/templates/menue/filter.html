@@ -1,7 +1,7 @@
 <!-- Filter Panel -->
 <div class="filter-panel">
     <h3>⚙️ Filterung der Daten</h3>
-    <form method="POST" action="{{ url_for('menue') }}">
+    <form method="POST" action="{{ url_for(action) }}">
         <div class="filter-section">
             <label>Filter-Vorlagen</label>
             <div class="filter-presets">
@@ -27,11 +27,20 @@
         </div>
 
         <div class="filter-section">
+            <label>Konten</label>
+            <div class="checkbox-group">
+                {% for konto in konten %}
+                    <label><input type="checkbox" name="konto" value="{{ konto.IBAN }}" {% if konto.IBAN|string in selected_konten %}checked{% endif %}> {{ konto.Konto_Name }}</label>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="filter-section">
             <label>Kategorie</label>
             <div class="checkbox-group">
                 {% for kategorie in kategorien %}
                     <label><input type="checkbox" name="kategorie" value="{{ kategorie.ID }}" {% if kategorie.ID|string in selected_kategorien %}checked{% endif %}> {{ kategorie.Bezeichnung }}</label>
-                {% endfor %}
+                    {% endfor %}
+                <label><input type="checkbox" name="kategorie" value="null" {% if "null" in selected_kategorien %}checked{% endif %}>Keine Kategorie</label>
             </div>
         </div>
         <button type="submit" class="apply-filters-btn" name="filter_btn" value="filter_apply">Filter anwenden</button>

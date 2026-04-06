@@ -103,19 +103,19 @@
         <div class="main-container">
             {% include 'menue/filter.html' %}
             <!-- Aktuelle Daten -->
-             <div>
+            <div class="main-container-data">
                 <div class="stats-container">
                     <div class="stat-box">
                         <div class="stat-title">Kontostand</div>
-                            <div class="stat-value">2.350 €</div>
+                            <div class="stat-value">{{kontostand | round(2)}} €</div>
                         </div>
                     <div class="stat-box">
                         <div class="stat-title">Ausgaben insgesamt</div>
-                        <div class="stat-value">1.120 €</div>
+                        <div class="stat-value">{{ausgaben_summe | round(2)}} €</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-title">Einnahmen insgesamt</div>
-                        <div class="stat-value">3.470 €</div>
+                        <div class="stat-value">{{einnahmen_summe | round(2)}} €</div>
                     </div>
                 </div>
 
