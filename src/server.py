@@ -165,6 +165,35 @@ def data_edit():
     
     transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
     print(len(transaktionen))
+
+    if  request.form.get("btn_filter") == "filter":
+
+        if request.form.get("txt_transaktionsdatum_von_filter"):
+            datum_von = datetime.strptime(request.form.get("txt_transaktionsdatum_von_filter"), "%Y-%m-%d")
+            datum_von = str(datum_von.strftime("%d.%m.%Y"))
+        if request.form.get("txt_transaktionsdatum_bis_filter"):
+            datum_bis = datetime.strptime(request.form.get("txt_transaktionsdatum_bis_filter"), "%Y-%m-%d")
+            datum_bis = str(datum_bis.strftime("%d.%m.%Y"))
+
+        transaction = TransaktionDTO(   
+                ID=request.form.get("txt_id_filter"),
+                IBAN_Zahlungsbeteiligter=request.form.get("txt_iban_zahlungsbeteiligter_filter"),
+                Name_Zahlungsbeteiligter=request.form.get("txt_name_zahlungsbeteiligter_filter"),
+                Verwendungszweck=request.form.get("txt_verwendungszweck_filter"),
+                Betrag=float(request.form.get("Saldo nach Buchung").replace(",", ".") if request.form.get("Saldo nach Buchung") else 0.00),
+                Transaktions_Datum= datum_von if request.form.get("txt_transaktionsdatum_von_filter") else None,
+
+                Buchungsart_ID=db.get_id_by_buchungsart(request.form.get("txt_buchungsart_filter")).ID if request.form.get("txt_buchungsart_filter") else None,
+                Kategorie_ID=db.get_id_by_kategorie(request.form.get("txt_kategorie_filter"), session.get("user_id")).ID if request.form.get("txt_kategorie_filter") else None,
+                Saldo_nach_Buchung=float(request.form.get("txt_saldo_nach_buchung_filter").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_filter") else 0.00)
+            )
+        data = db.get_filtered_transaktionen(transaction, session.get("user_id"), datum_bis if request.form.get("txt_transaktionsdatum_bis_filter") else None)
+
+        if data is not None:
+            return render_template("data_input.html", data=data)
+        else: 
+            return render_template("data_input.html")
+    
     
     return render_template("data_edit.html",
                             action="data_edit",
@@ -299,33 +328,6 @@ def data_input_post():
     
     #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
     #Filter Button
-    if  request.form.get("btn_filter") == "filter":
-
-        if request.form.get("txt_transaktionsdatum_von_filter"):
-            datum_von = datetime.strptime(request.form.get("txt_transaktionsdatum_von_filter"), "%Y-%m-%d")
-            datum_von = str(datum_von.strftime("%d.%m.%Y"))
-        if request.form.get("txt_transaktionsdatum_bis_filter"):
-            datum_bis = datetime.strptime(request.form.get("txt_transaktionsdatum_bis_filter"), "%Y-%m-%d")
-            datum_bis = str(datum_bis.strftime("%d.%m.%Y"))
-
-        transaction = TransaktionDTO(   
-                ID=request.form.get("txt_id_filter"),
-                IBAN_Zahlungsbeteiligter=request.form.get("txt_iban_zahlungsbeteiligter_filter"),
-                Name_Zahlungsbeteiligter=request.form.get("txt_name_zahlungsbeteiligter_filter"),
-                Verwendungszweck=request.form.get("txt_verwendungszweck_filter"),
-                Betrag=float(request.form.get("Saldo nach Buchung").replace(",", ".") if request.form.get("Saldo nach Buchung") else 0.00),
-                Transaktions_Datum= datum_von if request.form.get("txt_transaktionsdatum_von_filter") else None,
-
-                Buchungsart_ID=db.get_id_by_buchungsart(request.form.get("txt_buchungsart_filter")).ID if request.form.get("txt_buchungsart_filter") else None,
-                Kategorie_ID=db.get_id_by_kategorie(request.form.get("txt_kategorie_filter"), session.get("user_id")).ID if request.form.get("txt_kategorie_filter") else None,
-                Saldo_nach_Buchung=float(request.form.get("txt_saldo_nach_buchung_filter").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_filter") else 0.00)
-            )
-        data = db.get_filtered_transaktionen(transaction, session.get("user_id"), datum_bis if request.form.get("txt_transaktionsdatum_bis_filter") else None)
-
-        if data is not None:
-            return render_template("data_input.html", data=data)
-        else: 
-            return render_template("data_input.html")
     
     
     #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular

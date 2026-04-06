@@ -164,7 +164,7 @@ def get_bank_by_blz(blz) -> BankDTO:
     bank_dto = execute_select_dto(sql,BankDTO,wheres)
     return bank_dto
 
-def get_filtered_transaktionen(transaktion_filter:TransaktionDTO, user_id:int, datumBis:str) -> list[TransaktionDTO]:
+def get_filtered_transaktionen(transaktion_filter:TransaktionDTO, user_id:int, datumBis:str) -> list[DataInputDTOView]:
     list_data = []
     wheres = {"user_id": user_id}
 
@@ -220,10 +220,6 @@ def get_filtered_transaktionen(transaktion_filter:TransaktionDTO, user_id:int, d
     print(sql)
     
     return execute_select_dto_list(sql,DataInputDTOView,wheres)
-
-               
-
-
 
 
 def get_konto_by_user_id(kontoinhaber_id) -> list[KontoDTO]:

@@ -17,36 +17,6 @@ body {
     margin: 20px 0;
 }
 
-.form-box {
-    background: #e8f4ff;
-    padding: 20px;
-    border-radius: 8px;
-    width: 350px;
-    display: flex;
-    flex-direction: column;
-}
-
-.form-box label {
-    margin-top: 10px;
-    font-weight: bold;
-}
-
-.form-box input {
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.btn-green {
-    margin-top: 20px;
-    padding: 10px;
-    background: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
 .btn-blue {
     margin-top: 20px;
     padding: 10px;
@@ -57,7 +27,6 @@ body {
     cursor: pointer;
 }
 
-.btn-green:hover { background: #3e8e41; }
 .btn-blue:hover { background: #1976d2; }
 
 /* Upload-Box */
