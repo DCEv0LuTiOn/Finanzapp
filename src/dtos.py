@@ -65,7 +65,9 @@ class DataInputDTOView:
     Saldo_nach_Buchung: Optional[float] = None
     Transaktions_Datum: Optional[str] = None
     Bemerkung: Optional[str] = None
+    Kategorie_ID: Optional[int] = None
     Kategorie: Optional[int] = None
+    Buchungsart_ID: Optional[int] = None
     Buchungsart: Optional[str] = None
 
 

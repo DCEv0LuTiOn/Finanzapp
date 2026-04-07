@@ -1,0 +1,85 @@
+/* MODAL BASIS */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 9999; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); 
+    backdrop-filter: blur(2px);
+}
+
+/* MODAL BOX */
+.modal-content {
+    background-color: #ffffff; /* Absolut blickdicht */
+    margin: 5% auto; 
+    padding: 25px;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 480px; 
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    position: relative;
+    border: 1px solid #ccc;
+    max-height: 85vh; /* Falls der Bildschirm klein ist, wird die Box nicht abgeschnitten */
+    overflow-y: auto; /* Erlaubt Scrollen innerhalb des Popups */
+}
+
+/* SCHLIESSEN BUTTON */
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #333;
+}
+
+/* FORMULAR ELEMENTE IM POPUP */
+.modal-content h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.3rem;
+    color: #2c3e50;
+}
+
+.modal-content hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.modal-content .input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.modal-content label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.modal-content input, 
+.modal-content select, 
+.modal-content textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #fcfcfc;
+}
+
+.modal-content input:focus {
+    border-color: #4caf50;
+    outline: none;
+    background-color: #fff;
+}

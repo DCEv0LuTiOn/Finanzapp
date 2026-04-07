@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect,url_for, session
+from flask import Flask, flash, render_template, request, redirect,url_for, session
 from functools import wraps  # sorgt dafür, dass die Route ihren echten Namen behält für decorator benötigt
 import db
 from dtos import *
@@ -178,15 +178,26 @@ def data_edit():
     filter_daten = get_filter_daten()
     kategorien = filter_daten["kategorien"]
     selected_kategorien = filter_daten["selected_kategorien"]
-    start_date = filter_daten["start_date"]
-    end_date = filter_daten["end_date"]
     konten = filter_daten["konten"]
     selected_konten = filter_daten["selected_konten"]
-    
-    transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
-    print(len(transaktionen))
+    buchungsarten = db.get_all_buchungsarten()
+    data = []
+    if "filter_data" in session:
+        filter_data = session["filter_data"]
+    else:
+        filter_data = TransaktionDTO(
+            ID="", 
+            IBAN_Auftragskonto="", 
+            IBAN_Zahlungsbeteiligter="", 
+            Name_Zahlungsbeteiligter="", 
+            Verwendungszweck="", 
+            Betrag=0.00, 
+            Saldo_nach_Buchung=0.00,
+            Buchungsart_ID="", 
+            Bemerkung=""
+        )
 
-    if  request.form.get("btn_filter") == "filter":
+    if  request.form.get("btn_filter_transaktion") == "filter":
 
         if request.form.get("txt_transaktionsdatum_von_filter"):
             datum_von = datetime.strptime(request.form.get("txt_transaktionsdatum_von_filter"), "%Y-%m-%d")
@@ -195,36 +206,104 @@ def data_edit():
             datum_bis = datetime.strptime(request.form.get("txt_transaktionsdatum_bis_filter"), "%Y-%m-%d")
             datum_bis = str(datum_bis.strftime("%d.%m.%Y"))
 
-        transaction = TransaktionDTO(   
+        filter_data = TransaktionDTO(   
                 ID=request.form.get("txt_id_filter"),
                 IBAN_Zahlungsbeteiligter=request.form.get("txt_iban_zahlungsbeteiligter_filter"),
                 Name_Zahlungsbeteiligter=request.form.get("txt_name_zahlungsbeteiligter_filter"),
                 Verwendungszweck=request.form.get("txt_verwendungszweck_filter"),
-                Betrag=float(request.form.get("Saldo nach Buchung").replace(",", ".") if request.form.get("Saldo nach Buchung") else 0.00),
+                Betrag=float(request.form.get("txt_betrag_filter").replace(",", ".") if request.form.get("txt_betrag_filter") else 0.00),
+                Saldo_nach_Buchung=float(request.form.get("txt_saldo_nach_buchung_filter").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_filter") else 0.00),
                 Transaktions_Datum= datum_von if request.form.get("txt_transaktionsdatum_von_filter") else None,
 
                 Buchungsart_ID=db.get_id_by_buchungsart(request.form.get("txt_buchungsart_filter")).ID if request.form.get("txt_buchungsart_filter") else None,
-                Kategorie_ID=db.get_id_by_kategorie(request.form.get("txt_kategorie_filter"), session.get("user_id")).ID if request.form.get("txt_kategorie_filter") else None,
-                Saldo_nach_Buchung=float(request.form.get("txt_saldo_nach_buchung_filter").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_filter") else 0.00)
-            )
-        data = db.get_filtered_transaktionen(transaction, session.get("user_id"), datum_bis if request.form.get("txt_transaktionsdatum_bis_filter") else None)
-
-        if data is not None:
-            return render_template("data_input.html", data=data)
-        else: 
-            return render_template("data_input.html")
+                Bemerkung=request.form.get("txt_bemerkung_filter")
+        )
+        session["filter_data"] = filter_data
+        
+        data = db.get_filtered_transaktionen(filter_data, session.get("user_id"), datum_bis if request.form.get("txt_transaktionsdatum_bis_filter") else None, selected_konten, selected_kategorien)
     
-    
-    return render_template("data_edit.html",
-                            action="data_edit",
+    return render_template("data_edit/data_edit.html",
                             user_name=session.get("name"),
                             kategorien=kategorien,
                             selected_kategorien=selected_kategorien,
-                            start_date=start_date,
-                            end_date=end_date,
                             konten=konten,
                             selected_konten=selected_konten,
-                            transaktionen=transaktionen)
+                            buchungsarten=buchungsarten,
+                            filter_data=filter_data,
+                            data=data)
+
+#Menue ausliefern
+@app.route("/update_transaktion", methods=["POST"])  # GET ist hier meist nicht nötig
+@login_required
+def update_transaktion():
+    if request.method == "POST":
+        try:
+            transaktion = db.get_transaktion_by_id(request.form.get("id"))
+
+            # 1. Daten aus dem Formular abgreifen (Namen aus dem Popup-HTML)
+            transaktion.IBAN_Zahlungsbeteiligter = request.form.get("iban_beteiligter")
+            transaktion.Name_Zahlungsbeteiligter = request.form.get("name_beteiligter")
+            transaktion.Verwendungszweck = request.form.get("verwendungszweck")
+
+            # Betrag sicher umwandeln
+            betrag_raw = request.form.get("betrag")
+            transaktion.Betrag = float(betrag_raw.replace(",", ".")) if betrag_raw else 0.0
+            
+            transaktion.Transaktions_Datum = request.form.get("datum")
+            transaktion.Bemerkung = request.form.get("bemerkung")
+            
+            # IDs abgreifen
+            transaktion.Buchungsart_ID = request.form.get("buchungsart_id")
+            transaktion.Kategorie_ID = request.form.get("kategorie_id")
+
+            # 2. Spezialfall: "Keine Kategorie" (null) behandeln
+            if transaktion.Kategorie_ID == "null":
+                transaktion.Kategorie_ID = None
+            else:
+                transaktion.Kategorie_ID = int(transaktion.Kategorie_ID)
+
+            # Buchungsart_ID ist ein Pflichtfeld, aber sicherheitshalber trotzdem umwandeln
+            transaktion.Buchungsart_ID = int(transaktion.Buchungsart_ID) if transaktion.Buchungsart_ID else None
+            
+
+            # 4. Datenbank-Aufruf zum Aktualisieren der Transaktion
+            db.execute_update_dtos(transaktion)
+            
+            # Erfolg melden
+            flash("Eintrag erfolgreich aktualisiert", "success")
+
+        except Exception as e:
+            print(f"Fehler beim Update: {e}")
+            # flash(f"Fehler beim Speichern: {e}", "danger")
+
+    return redirect(url_for("data_edit"))
+
+#Dateininput 
+
+@app.route("/data_input", methods=["POST"])
+def data_input_post():
+
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #Upload Button
+    if  request.form.get("btn_upload") == "upload":
+    # "uploaded_file" ist der Name des Input-Felds im HTML-Formular
+        uploaded_file = request.files.get("file_csv_Upload") 
+        if uploaded_file:
+            list_data = extract_data(uploaded_file)
+
+            return render_template("data_input.html", data=list_data)  
+ 
+    
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #Filter Button
+    
+    
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #Insert Button
+    if  request.form.get("btn_insert") == "insert":    
+        pass
+    return redirect(url_for("data_input"))
+
 
 def get_filter_daten() -> list[TransaktionDTO]:
     kategorien:list[KategorieDTO] = db.get_kategorien_by_kontoinhaber_id(session.get("user_id"))
@@ -328,33 +407,6 @@ def filterdatum_auslesen(filter_btn):
         end_date = ""
     
     return (start_date, end_date)
-
-
-#Dateininput 
-
-@app.route("/data_input", methods=["POST"])
-def data_input_post():
-
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Upload Button
-    if  request.form.get("btn_upload") == "upload":
-    # "uploaded_file" ist der Name des Input-Felds im HTML-Formular
-        uploaded_file = request.files.get("file_csv_Upload") 
-        if uploaded_file:
-            list_data = extract_data(uploaded_file)
-
-            return render_template("data_input.html", data=list_data)  
- 
-    
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Filter Button
-    
-    
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Insert Button
-    if  request.form.get("btn_insert") == "insert":    
-        pass
-    return redirect(url_for("data_input"))
 
 '''
 In dieser Funktion werden die Transaktionsdaten ausgelesen, geprüft und in die Datenbanktabellen eingefügt.
