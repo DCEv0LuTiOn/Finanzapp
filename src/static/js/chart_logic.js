@@ -47,6 +47,9 @@ function initFinanceChartsFromDict(dataDict) {
     const doughnutOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+        padding: 24 // Gibt dem Chart Platz, damit Segmente beim Hover nicht abgeschnitten werden
+        },
         plugins: { legend: { position: 'bottom' } }
     };
 
@@ -57,7 +60,7 @@ function initFinanceChartsFromDict(dataDict) {
         type: 'doughnut',
         data: {
             labels: labelsAusgaben,
-            datasets: [{ data: valuesAusgaben, backgroundColor: colorsAusgaben }]
+            datasets: [{ data: valuesAusgaben, backgroundColor: colorsAusgaben, hoverOffset: 25 }]
         },
         options: doughnutOptions
     });
@@ -67,7 +70,7 @@ function initFinanceChartsFromDict(dataDict) {
         type: 'doughnut',
         data: {
             labels: labelsEinnahmen,
-            datasets: [{ data: valuesEinnahmen, backgroundColor: colorsEinnahmen }]
+            datasets: [{ data: valuesEinnahmen, backgroundColor: colorsEinnahmen, hoverOffset: 25 }]
         },
         options: doughnutOptions
     });
