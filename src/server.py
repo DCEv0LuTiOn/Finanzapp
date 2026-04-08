@@ -279,33 +279,6 @@ def update_transaktion():
 
     return redirect(url_for("data_edit"))
 
-#Dateininput 
-
-@app.route("/data_input", methods=["POST"])
-def data_input_post():
-
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Upload Button
-    if  request.form.get("btn_upload") == "upload":
-    # "uploaded_file" ist der Name des Input-Felds im HTML-Formular
-        uploaded_file = request.files.get("file_csv_Upload") 
-        if uploaded_file:
-            list_data = extract_data(uploaded_file)
-
-            return render_template("data_input.html", data=list_data)  
- 
-    
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Filter Button
-    
-    
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Insert Button
-    if  request.form.get("btn_insert") == "insert":    
-        pass
-    return redirect(url_for("data_input"))
-
-
 def get_filter_daten() -> list[TransaktionDTO]:
     kategorien:list[KategorieDTO] = db.get_kategorien_by_kontoinhaber_id(session.get("user_id"))
     konten:list[KontoDTO] = db.get_all_konten_by_kontoinhaber_id(session.get("user_id"))
@@ -411,7 +384,6 @@ def filterdatum_auslesen(filter_btn):
 
 
 #Dateininput 
-
 @app.route("/data_input", methods=["POST"])
 def data_input_post():
 
