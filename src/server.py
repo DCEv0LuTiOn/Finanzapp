@@ -6,6 +6,7 @@ import hashlib
 import calendar
 from datetime import datetime, timedelta
 import csv
+import re
 
 
 # Flask App definieren, static_folder auf public setzen
@@ -149,7 +150,7 @@ def menue():
 @app.route("/data_input")
 @login_required
 def data_input():
-    return render_template("data_input.html", user_name=session.get("name"))
+    return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")))
 
 #Menue ausliefern
 @app.route("/data_edit", methods=["GET", "POST"])
@@ -190,11 +191,11 @@ def data_edit():
         data = db.get_filtered_transaktionen(transaction, session.get("user_id"), datum_bis if request.form.get("txt_transaktionsdatum_bis_filter") else None)
 
         if data is not None:
-            return render_template("data_input.html", data=data)
+            return render_template("data_input.html", user_name=session.get("name"), data=data, kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), buchungsarten=db.get_all_buchungsarten(), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")))
         else: 
-            return render_template("data_input.html")
-    
-    
+            return render_template("data_input.html", user_name=session.get("name"), kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), buchungsarten=db.get_all_buchungsarten(), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")))
+
+
     return render_template("data_edit.html",
                             action="data_edit",
                             user_name=session.get("name"),
@@ -208,7 +209,7 @@ def data_edit():
 
 def get_filter_daten() -> list[TransaktionDTO]:
     kategorien:list[KategorieDTO] = db.get_kategorien_by_kontoinhaber_id(session.get("user_id"))
-    konten:list[KontoDTO] = db.get_konto_by_user_id(session.get("user_id"))
+    konten:list[KontoDTO] = db.get_all_konten_by_kontoinhaber_id(session.get("user_id"))
     
     # Default Datumsbereich
     start_date = ""
@@ -315,25 +316,193 @@ def filterdatum_auslesen(filter_btn):
 @app.route("/data_input", methods=["POST"])
 def data_input_post():
 
+    error = None
+    if  request.form.get("btn_transaktion_insert") == "transaktion":  
+
+        #Plausibilitätsprüfungen für die Transaktionsdaten
+        if str.strip(request.form.get("ddm_iban_auftragskonto_insert")) == "":
+            error = "IBAN Auftragskonto darf nicht leer sein!"
+
+
+        #IBAN Zahlungsbeteiligter 
+        elif str.strip(request.form.get("txt_iban_zahlungsbeteiligter_insert").upper()) == "":
+            error = "IBAN Zahlungsbeteiligter darf nicht leer sein!"
+        elif got_special_characters(str.strip(request.form.get("txt_iban_zahlungsbeteiligter_insert").upper())):
+            error = "IBAN Zahlungsbeteiligter enthält Sonderzeichen!"
+        elif iban_valid(str.strip(request.form.get("txt_iban_zahlungsbeteiligter_insert").upper())) == False:
+            error = "IBAN Zahlungsbeteiligter ist ungültig!"
+
+        #Name Zahlungsbeteiligter
+        elif str.strip(request.form.get("txt_name_zahlungsbeteiligter_insert")) == "":
+            error = "Name Zahlungsbeteiligter darf nicht leer sein!"
+
+        #Verwendungszweck
+        elif str.strip(request.form.get("txt_verwendungszweck_insert")) == "":
+            error = "Verwendungszweck darf nicht leer sein!"
+
+        #Betrag
+        elif str.strip(request.form.get("txt_betrag_insert")) == "":
+            error = "Betrag darf nicht leer sein!"
+        elif betrag_valid(str.strip(request.form.get("txt_betrag_insert"))) == False:
+            error = "Betrag ist ungültig! Bitte nur Zahlen eingeben, Dezimaltrennzeichen ist ein Komma!"
+
+        #Saldo nach Buchung
+        elif str.strip(request.form.get("txt_saldo_nach_buchung_insert")) == "":
+            error = "Saldo nach Buchung darf nicht leer sein!"
+        elif betrag_valid(str.strip(request.form.get("txt_saldo_nach_buchung_insert"))) == False:
+            error = "Saldo nach Buchung ist ungültig! Bitte nur Zahlen eingeben, Dezimaltrennzeichen ist ein Komma!"
+
+        #Transaktionsdatum
+        elif str.strip(request.form.get("txt_transaktionsdatum_insert")) == "":
+            error = "Transaktionsdatum darf nicht leer sein!"
+            
+        elif str.strip(request.form.get("ddm_buchungsart_insert")) == "":
+            error = "Buchungsart muss ausgewählt werden!"
+        elif str.strip(request.form.get("ddm_kategorie_insert")) == "":
+            error = "Kategorie muss ausgewählt werden!"
+
+        #prüft ob ein Fehler aus den Plausibilitätsprüfungen vorliegt, wenn ja wird die Seite mit Fehlermeldung neu geladen   
+        if error is not None:
+            return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), transaction_error=error)    
+        
+        datum = datetime.strptime(request.form.get("txt_transaktionsdatum_insert"), "%Y-%m-%d")
+        datum = str(datum.strftime("%d.%m.%Y"))
+
+        transaction = TransaktionDTO(
+                IBAN_Auftragskonto=request.form.get("ddm_iban_auftragskonto_insert"),
+                IBAN_Zahlungsbeteiligter=request.form.get("txt_iban_zahlungsbeteiligter_insert").upper(),
+                Name_Zahlungsbeteiligter=request.form.get("txt_name_zahlungsbeteiligter_insert"),
+                Verwendungszweck=request.form.get("txt_verwendungszweck_insert"),
+                Betrag=float(request.form.get("txt_betrag_insert").replace(",", ".")),
+                Transaktions_Datum=datum,
+                Buchungsart_ID=request.form.get("ddm_buchungsart_insert"),
+                Kategorie_ID=request.form.get("ddm_kategorie_insert"),
+                Saldo_nach_Buchung=float(request.form.get("txt_saldo_nach_buchung_insert").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_insert") else 0.00),
+                Bemerkung=request.form.get("txt_bemerkung_insert")
+            )
+        db.execute_insert_dtos(transaction)
+        return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), transaction_correct="Transaktion erfolgreich hinzugefügt!")    
+
+
+    #Konto Insert Button                                                               
+    if  request.form.get("btn_konto_insert") == "konto": 
+        
+        print(request.form.get("txt_iban_konto_insert"))
+        #IBAN  
+        if str.strip(request.form.get("txt_iban_konto_insert")) == "":
+            error = "IBAN darf nicht leer sein!"
+        elif got_special_characters(str.strip(request.form.get("txt_iban_konto_insert").upper())):
+            error = "IBAN enthält Sonderzeichen!"
+        elif iban_valid(str.strip(request.form.get("txt_iban_konto_insert").upper())) == False:
+            error = "IBAN ist ungültig!"
+        elif db.get_konto_by_iban(str.strip(request.form.get("txt_iban_konto_insert").upper())) is not None:
+            error = "IBAN ist bereits vorhanden!"
+        elif db.get_bank_by_blz(str.strip(request.form.get("txt_iban_konto_insert").upper()[4:12])) is None:
+            error = "Die BLZ aus der IBAN ist nicht in der Datenbank vorhanden! Bitte zuerst die Bank mit der entsprechenden BLZ anlegen!"
+
+
+        #BIC
+        elif str.strip(request.form.get("txt_bic_konto_insert")) == "":
+            error = "BIC darf nicht leer sein!"
+        elif got_special_characters(str.strip(request.form.get("txt_bic_konto_insert"))):
+            error = "BIC enthält Sonderzeichen!"
+        elif bic_valid(str.strip(request.form.get("txt_bic_konto_insert"))) == False:
+            error = "BIC ist ungültig!"
+        
+        #Konto Name
+        elif str.strip(request.form.get("txt_konto_name_insert")) == "":
+            error = "Konto Name darf nicht leer sein!"
+
+        #Saldo
+        elif str.strip(request.form.get("txt_saldo_konto_insert")) == "":
+            error = "Saldo darf nicht leer sein!"
+        elif betrag_valid(str.strip(request.form.get("txt_saldo_konto_insert"))) == False:
+            error = "Saldo ist ungültig! Bitte nur Zahlen eingeben, Dezimaltrennzeichen ist ein Komma!"
+        
+        #Währung
+        elif str.strip(request.form.get("ddm_waehrung_konto_insert"))  == "":
+            error = "Währung muss ausgewählt werden!"   
+
+        #error anzeigen wenn eine der Plausibilitätsprüfungen fehlschlägt, ansonsten Konto in die Datenbank einfügen
+        if error is not None:
+            return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), konto_error=error)    
+        
+        konto = KontoDTO(
+            IBAN=request.form.get("txt_iban_konto_insert"),
+            BIC=request.form.get("txt_bic_konto_insert"),
+            BLZ=request.form.get("txt_iban_konto_insert")[4:12],
+            Konto_Name=request.form.get("txt_konto_name_insert"),
+            Kontoinhaber_ID=session.get("user_id"),
+            Saldo=request.form.get("txt_saldo_konto_insert").replace(",", "."),
+            Waehrung_ID=request.form.get("ddm_waehrung_konto_insert")
+        )
+
+        db.execute_insert_dtos(konto)
+        return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), konto_correct="Konto erfolgreich hinzugefügt!")    
+    
     #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
     #Upload Button
-    if  request.form.get("btn_upload") == "upload":
+    if  request.form.get("btn_csv_upload") == "csv_upload":
     # "uploaded_file" ist der Name des Input-Felds im HTML-Formular
         uploaded_file = request.files.get("file_csv_Upload") 
         if uploaded_file:
             list_data = extract_data(uploaded_file)
 
-            return render_template("data_input.html", data=list_data)  
+            return render_template("data_input.html", data=list_data , user_name=session.get("name"), kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), buchungsarten=db.get_all_buchungsarten(), waehrungen=db.get_all_waehrungen() , konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), transaction_correct="CSV-Datei erfolgreich hochgeladen und Daten in die Datenbank eingefügt!")  
  
     
     #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Filter Button
-    
+    #kategorien Button
+
+    if  request.form.get("btn_kategorien_insert") == "kategorien":    
+        
+        #Kategorie Name
+        if str.strip(request.form.get("txt_kategorie_name_insert")) == "":
+            error = "Kategorie darf nicht leer sein!"
+        elif got_special_characters(str.strip(request.form.get("txt_kategorie_name_insert"))):
+            error = "Kategorie enthält Sonderzeichen!"
+        elif db.get_id_by_kategorie(str.strip(request.form.get("txt_kategorie_name_insert")), session.get("user_id")) is not None:
+            error = "Kategorie ist bereits vorhanden!"
+
+        #error anzeigen wenn eine der Plausibilitätsprüfungen fehlschlägt, ansonsten Kategorie in die Datenbank einfügen
+        if error is not None:  
+            return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), kategorie_error=error)
+
+        kategorie = KategorieDTO(
+            Bezeichnung=request.form.get("txt_kategorie_name_insert"),
+            Kontoinhaber_ID=session.get("user_id")
+        )
+        db.execute_insert_dtos(kategorie)
+        return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), kategorie_correct="Kategorie erfolgreich hinzugefügt!")
     
     #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Insert Button
-    if  request.form.get("btn_insert") == "insert":    
-        pass
+    #bank Button
+    if  request.form.get("btn_bank_insert") == "bank":    
+
+        #BLZ
+        if str.strip(request.form.get("txt_blz_bank_insert")) == "":
+            error = "BLZ darf nicht leer sein!" 
+        elif got_special_characters(str.strip(request.form.get("txt_blz_bank_insert"))):
+            error = "BLZ enthält Sonderzeichen!"
+        elif db.get_bank_by_blz(str.strip(request.form.get("txt_blz_bank_insert"))) is not None:
+            error = "BLZ ist bereits vorhanden!"
+        elif blz_valid(str.strip(request.form.get("txt_blz_bank_insert"))) == False:
+            error = "BLZ ist ungültig! Bitte prüfen Sie ihre Eingabe!"
+        
+        #Bank Name
+        elif str.strip(request.form.get("txt_name_bank_insert")) == "":
+            error = "Bank Name darf nicht leer sein!"
+
+        #error anzeigen wenn eine der Plausibilitätsprüfungen fehlschlägt, ansonsten Bank in die Datenbank einfügen
+        if error is not None:  
+            return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), bank_error=error)
+
+        bank = BankDTO(
+            BLZ=request.form.get("txt_blz_bank_insert"),
+            Name=request.form.get("txt_name_bank_insert")
+        )
+        db.execute_insert_dtos(bank)
+        return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), bank_correct="Bank erfolgreich hinzugefügt!")
     return redirect(url_for("data_input"))
 
 '''
@@ -413,7 +582,70 @@ def extract_data(file) -> list[TransaktionDTO]:
         db.execute_insert_dtos(list_data)
     return list_data
 
+#prüfen ob Sonderzeichen in einem String vorhanden sind
+def got_special_characters(text):
+    return bool(re.search(r"[^a-zA-Z0-9]", text))
 
+def iban_valid(iban):
+    iban = iban.replace(" ", "").upper()
+
+    # Grundstruktur
+    if not re.match(r"^[A-Z]{2}[0-9]{2}[A-Z0-9]+$", iban):
+        return False
+
+    # Länge prüfen (Beispiel DE)
+    if len(iban) != 22:
+        return False
+
+    # Prüfziffer-Algorithmus
+    rearranged = iban[4:] + iban[:4]
+
+    # Buchstaben ersetzen
+    numeric = ""
+    for ch in rearranged:
+        if ch.isdigit():
+            numeric += ch
+        else:
+            numeric += str(ord(ch) - 55)  # A=10, B=11, ...
+
+    # Modulo 97
+    return int(numeric) % 97 == 1
+
+
+def bic_valid(bic: str) -> bool:
+    if not bic:
+        return False
+
+    bic = bic.strip().upper()
+
+    muster = r"^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$"
+
+    return bool(re.match(muster, bic))
+
+def betrag_valid(betrag: str) -> bool:
+    if not betrag:
+        return False
+
+    betrag = betrag.strip()
+
+    # Deutsche Schreibweise: -1.234,56 oder 1.234,56
+    muster_de = r"^-?[0-9]{1,3}(\.[0-9]{3})*(,[0-9]{1,2})?$"
+
+    # Internationale Schreibweise: -1234.56 oder 1234.56
+    muster_int = r"^-?[0-9]+(\.[0-9]{1,2})?$"
+
+    return bool(re.match(muster_de, betrag) or re.match(muster_int, betrag))
+
+
+def blz_valid(blz: str) -> bool:
+    if not blz:
+        return False
+
+    blz = blz.strip()
+
+    muster = r"^[0-9]{8}$"
+
+    return bool(re.match(muster, blz))
 
 if __name__ == "__main__":
     # use_reloader=False ist der Schlüssel für VS Code Debugging!

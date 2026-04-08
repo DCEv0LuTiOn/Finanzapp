@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <header>
-    <title>Data Edit</title>
+    <title>Data Input</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/data_input.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
@@ -15,76 +15,224 @@
     
     
     <div class="page-container">
+
         <div class="dual-form-container">
+            <div>
+                <!-- Rechtes Formular: Datensatz einfügen -->
+                <form class="form-box" method="post">
+                    <h3>Transaktion einfügen:</h3>
+                    
+                    {% if transaction_error %}
+                    <div class="error-box">
+                        {{ transaction_error }}
+                    </div>
+                    {% endif %}
 
-            <!-- Rechtes Formular: Datensatz einfügen -->
-            <form class="form-box" method="post">
-                <h3>Datensatz einfügen</h3>
+                    {% if transaction_correct %}
+                    <div class="correct-box">
+                        {{ transaction_correct }}
+                    </div>
+                    {% endif %}
 
-                <!--<label>ID:</label>-->
-                <!--<input type="text" name="id">-->
-                <div class="table-input">
-                    <div>
-                        <label>IBAN Auftragskonto:</label>
-                        <input type="text" name="txt_iban_auftragskonto_insert">
+                    <!--<label>ID:</label>-->
+                    <!--<input type="text" name="id">-->
+                    <div class="table-input">
+                        <div>
+                            <label>IBAN <br> Auftragskonto:</label>
+                            <!-- <input type="text" name="txt_iban_auftragskonto_insert"> -->
+                              <select name="ddm_iban_auftragskonto_insert", id="ddm_iban_auftragskonto_insert">
+                                {% for konto in konten %}
+                                    <option value="{{ konto.IBAN }}">{{ konto.IBAN }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label>IBAN Zahlungsbeteiligter:</label>
+                            <input type="text" name="txt_iban_zahlungsbeteiligter_insert">
+                        </div>
+                        <div>
+                            <label>Name Zahlungsbeteiligter:</label>
+                            <input type="text" name="txt_name_zahlungsbeteiligter_insert">
+                        </div>
                     </div>
-                    <div>
-                        <label>IBAN Zahlungsbeteiligter:</label>
-                        <input type="text" name="txt_iban_zahlungsbeteiligter_insert">
+                    <div class="table-input">
+                        <div>
+                            <label>Verwendungszweck:</label>
+                            <input type="text" name="txt_verwendungszweck_insert">
+                        </div>
+                        <div>    
+                            <label>Betrag:</label>
+                            <input type="text" name="txt_betrag_insert">
+                        </div>
+                        <div>
+                            <label>Saldo nach Buchung:</label>
+                            <input type="text" name="txt_saldo_nach_buchung_insert">
+                        </div>
                     </div>
-                    <div>
-                        <label>Name Zahlungsbeteiligter:</label>
-                        <input type="text" name="txt_name_zahlungsbeteiligter_insert">
+                    <div class="table-input">
+                        <div>
+                            <label>Transaktionsdatum:</label>
+                            <input type="date" name="txt_transaktionsdatum_insert">
+                        </div>
+                        <div>
+                            <label>Buchungsart:</label>
+                            <!-- <input type="text" name="txt_buchungsart_insert"> -->
+                            <select name="ddm_buchungsart_insert" id="buchungsart">
+                                {% for Buchungsart in buchungsarten %}
+                                    <option value="{{ Buchungsart.ID }}">{{ Buchungsart.Buchungsart }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Kategorie:</label>
+                            <!-- <input type="text" name="txt_kategorie_insert"> -->
+                            <select name="ddm_kategorie_insert" id="kategorie">
+                                {% for kategorie in kategorien %}
+                                    <option value="{{ kategorie.ID }}">{{ kategorie.Bezeichnung }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="table-input">
-                    <div>
-                        <label>Verwendungszweck:</label>
-                        <input type="text" name="txt_verwendungszweck_insert">
+                    <div class="table-input">
+                        <div>
+                            <label>Bemerkung:</label>
+                            <input type="text" name="txt_bemerkung_insert">
+                        </div>
                     </div>
-                    <div>    
-                        <label>Betrag:</label>
-                        <input type="text" name="txt_betrag_insert">
+                    <div class="table-input">
+                        <button type="submit" class="btn-style" name="btn_transaktion_insert" value="transaktion">Einfügen</button>
                     </div>
-                    <div>
-                        <label>Saldo nach Buchung:</label>
-                        <input type="text" name="txt_saldo_nach_buchung_insert">
+                </form>
+            </div>
+
+            <div>
+
+                <!-- Rechtes Formular: Konto hinzufügen -->
+                <form class="form-box" method="post">
+                    <h3>Konto hinzufügen:</h3>
+
+                    {% if konto_error %}
+                    <div class="error-box">
+                        {{ konto_error }}
                     </div>
-                </div>
-                <div class="table-input">
-                    <div>
-                        <label>Transaktionsdatum:</label>
-                        <input type="date" name="txt_transaktionsdatum_insert">
+                    {% endif %}
+
+                    {% if konto_correct %}
+                    <div class="correct-box">
+                        {{ konto_correct }}
                     </div>
-                    <div>
-                        <label>Buchungsart ID:</label>
-                        <input type="text" name="txt_buchungsart_insert">
+                    {% endif %}
+
+                    <div class="table-input">
+                        <div>
+                            <label>IBAN:</label>
+                            <input type="text" name="txt_iban_konto_insert">
+                        </div>
                     </div>
-                    <div>
-                        <label>Kategorie ID:</label>
-                        <input type="text" name="txt_kategorie_insert">
+                    <div class="table-input">
+                        <div>
+                            <label>BIC:</label>
+                            <input type="text" name="txt_bic_konto_insert">
+                        </div>
+                        <!-- <div>
+                            <label>BLZ:</label>
+                            <input type="text" name="txt_blz_insert" disabled>
+                        </div> -->
+                        <div>
+                            <label>Konto Name:</label>
+                            <input type="text" name="txt_konto_name_insert">
+                        </div>
+                        
                     </div>
-                </div>
-                <div class="table-input">
-                    <div>
-                        <label>Bemerkung:</label>
-                        <input type="text" name="txt_bemerkung_insert">
+                    <div class="table-input">
+                        <div>    
+                            <label>Kontoinhaber:</label>
+                            <input type="text" name="txt_kontoinhaber_insert" disabled value="{{ session.get('name') }}">
+                        </div>
+                        <div>
+                            <label>Saldo:</label>
+                            <input type="text" name="txt_saldo_konto_insert">
+                        </div>
+                        <div>
+                            <label>Währung:</label>
+                            <!-- <input type="" name="txt_waehrung_insert"> -->
+                             <select name="ddm_waehrung_konto_insert" id="waehrung">
+                                {% for waehrung in waehrungen %}
+                                    <option value="{{ waehrung.ID }}">{{ waehrung.Waehrung }}</option>
+                                {% endfor %}
+                            </select>
+
+                        </div>
                     </div>
-                </div>
-                <div class="table-input">
-                    <button type="submit" class="btn-blue" name="btn_insert" value="insert">Datensatz einfügen</button>
+                    <div class="table-input">
+                        <button type="submit" class="btn-style" name="btn_konto_insert" value="konto">Einfügen</button>
+                    </div>
+                </form>
+            </div>
+        </div>    
+
+        <div class="dual-form-container">
+            <form method="post" enctype="multipart/form-data">
+                <div class="upload-container">
+                    <label for="csvUpload">CSV hochladen:</label>
+                    <input type="file" name="file_csv_Upload" id="csv_upload" accept=".csv">
+                    <button class="btn-style" type="submit" name="btn_csv_upload" value="csv_upload">Upload</button>
                 </div>
             </form>
-        </div>
-
-
-        <form method="post" enctype="multipart/form-data">
-            <div class="upload-container">
-                <label for="csvUpload">CSV hochladen:</label>
-                <input type="file" name="file_csv_Upload" id="csv_upload" accept=".csv">
-                <button class="btn-style" type="submit" name="btn_upload" value="upload">Upload</button>
+            <div>
+                <!-- Rechtes Formular: Datensatz einfügen -->
+                <form class="form-box" method="post">
+                    <h3>Kategorie hinzufügen:</h3>
+                    {% if kategorie_error %}
+                    <div class="error-box">
+                        {{ kategorie_error }}
+                    </div>
+                    {% endif %}
+                    {% if kategorie_correct %}
+                    <div class="correct-box">
+                        {{ kategorie_correct }}
+                    </div>
+                    {% endif %}
+                    <div class="table-input">
+                        <div>
+                            <input type="text" name="txt_kategorie_name_insert">
+                        </div>
+                    </div>
+                    <div class="table-input">
+                        <button type="submit" class="btn-style" name="btn_kategorien_insert" value="kategorien">Einfügen</button>
+                    </div>
+                </form>
             </div>
-        </form>
+            <div>
+                <!-- Rechtes Formular: Datensatz einfügen -->
+                <form class="form-box" method="post">
+                    <h3>Bank hinzufügen:</h3>
+                    {% if bank_error %}
+                    <div class="error-box">
+                        {{ bank_error }}
+                    </div>
+                    {% endif %}
+                    {% if bank_correct %}
+                    <div class="correct-box">
+                        {{ bank_correct }}
+                    </div>
+                    {% endif %}
+                    <div class="table-input">
+                        <div>
+                            <label>BLZ:</label>
+                            <input type="text" name="txt_blz_bank_insert">
+                        </div>
+                        <div>
+                            <label>Name:</label>
+                            <input type="text" name="txt_name_bank_insert">
+                        </div>
+                    </div>
+                    <div class="table-input">
+                        <button type="submit" class="btn-style" name="btn_bank_insert" value="bank">Einfügen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </body>
 </html>

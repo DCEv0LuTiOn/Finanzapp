@@ -138,6 +138,12 @@ def get_konto_by_iban(iban) -> KontoDTO:
     konto = execute_select_dto(sql,KontoDTO,wheres)
     return konto
 
+def get_all_konten_by_kontoinhaber_id(kontoinhaber_id) -> list[KontoDTO]:
+    wheres = {'Kontoinhaber_ID':kontoinhaber_id}
+    sql = "SELECT * FROM Konto where Kontoinhaber_ID = :Kontoinhaber_ID"
+    konten = execute_select_dto_list(sql,KontoDTO,wheres)
+    return konten
+
 
 def get_id_by_waehrung(waehrung) -> WaehrungDTO:
     wheres = {'Waehrung':waehrung}
@@ -145,6 +151,10 @@ def get_id_by_waehrung(waehrung) -> WaehrungDTO:
     waehrung_dto = execute_select_dto(sql,WaehrungDTO,wheres)
     return waehrung_dto
 
+def get_all_waehrungen() -> list[WaehrungDTO]:
+    sql = "SELECT * FROM Waehrung"
+    waehrungen = execute_select_dto_list(sql,WaehrungDTO,{})
+    return waehrungen
 
 def get_id_by_buchungsart(buchungsart) -> BuchungsartDTO:
     wheres = {'Buchungsart':buchungsart}
@@ -152,11 +162,24 @@ def get_id_by_buchungsart(buchungsart) -> BuchungsartDTO:
     buchungsart_dto = execute_select_dto(sql,BuchungsartDTO,wheres)
     return buchungsart_dto
 
+def get_all_buchungsarten() -> list[BuchungsartDTO]:
+    sql = "SELECT * FROM Buchungsart"
+    buchungsarten = execute_select_dto_list(sql,BuchungsartDTO,{})
+    return buchungsarten
+
 def get_id_by_kategorie(bezeichnung, kontoinhaber_id) -> KategorieDTO:
     wheres = {'Bezeichnung':bezeichnung, 'Kontoinhaber_ID':kontoinhaber_id}
     sql = "SELECT * FROM Kategorie where Bezeichnung = :Bezeichnung and Kontoinhaber_ID = :Kontoinhaber_ID"
     kategorie_dto = execute_select_dto(sql,KategorieDTO,wheres)
     return kategorie_dto
+
+def get_all_kategorien_by_user_id(user_id) -> list[KategorieDTO]:
+    wheres = {'Kontoinhaber_ID':user_id}
+    sql = "SELECT * FROM Kategorie where Kontoinhaber_ID = :Kontoinhaber_ID"
+    kategorien = execute_select_dto_list(sql,KategorieDTO,wheres)
+    return kategorien
+
+
 
 def get_bank_by_blz(blz) -> BankDTO:
     wheres = {'BLZ':blz}
@@ -220,13 +243,6 @@ def get_filtered_transaktionen(transaktion_filter:TransaktionDTO, user_id:int, d
     print(sql)
     
     return execute_select_dto_list(sql,DataInputDTOView,wheres)
-
-
-def get_konto_by_user_id(kontoinhaber_id) -> list[KontoDTO]:
-    wheres = {'Kontoinhaber_ID':kontoinhaber_id}
-    sql = "SELECT * FROM Konto where Kontoinhaber_ID = :Kontoinhaber_ID"
-    konten = execute_select_dto_list(sql,KontoDTO,wheres)
-    return konten
 
 def get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(ibans:list[str], kategorie_IDs:list, start_date:str, end_date:str) -> list[TransaktionDTO]:
 
