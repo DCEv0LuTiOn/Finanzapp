@@ -3,16 +3,17 @@ body {
     margin: 0;
     display:flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     font-family: Arial, sans-serif;
+    overflow-x: auto;
 }
 
 .main-container{
     display:flex;
-    margin-top: 1%;
+    margin-top: 10px;
     gap: 20px;
-    width: 90%;
+    width: 100%;
+    min-height: 800px;
 }
 
 .main-container-data{
@@ -20,35 +21,31 @@ body {
     flex-direction: column;
     gap: 20px;
     width: 100%;
+    min-width: 1000px;
+    min-height: 800px;
 }
 
-.filter-container{
+.stats-container{
     background:white;
-    padding:15px;
+    padding:10px;
+    margin-right: 10px;
     border-radius:10px;
     box-shadow:5px 5px 15px rgba(0,0,0,0.3);
     display:flex;
-    gap:20px;
-    justify-content:center;
-    align-items:center;
+    justify-content:space-around;
+    text-align:center;
 
-
-    .filter-btn{
-        background-color:rgb(193, 221, 255);
-        border: 1px solid;
-        border-color: black;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        cursor: pointer;
-        padding: 10px 20px;
-        border-radius: 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+    .stat-box{
+        padding:10px 20px;
     }
-    
-    .filter-btn:hover{
-        background-color:rgb(150, 200, 255);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+
+    .stat-title{
+        font-weight:bold;
+        margin-bottom:5px;
+    }
+
+    .stat-value{
+        font-size:20px;
+        color:#2c6ed5;
     }
 }
-
-

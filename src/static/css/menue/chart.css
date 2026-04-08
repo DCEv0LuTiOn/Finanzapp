@@ -1,0 +1,70 @@
+/* 1. Den Haupt-Container auf die verfügbare Bildschirmhöhe zwingen */
+.main-container-data {
+    display: flex;
+    flex-direction: column;
+    /* 100vh = volle Fensterhöhe. Wir ziehen ca. 120px für Nav/Stats ab */
+    height: calc(100vh - 110px); 
+    min-height: 800px; /* Verhindert, dass es auf winzigen Bildschirmen unbrauchbar klein wird */
+    overflow: hidden;  /* Verhindert Scrollen auf der Seite */
+    box-sizing: border-box;
+    padding-bottom: 10px;
+}
+
+/* 2. Der Bereich, in dem die Charts nebeneinander liegen */
+.menue-container-charts {
+    display: flex;
+    flex-direction: row; 
+    flex-wrap: nowrap;
+    gap: 15px;
+    flex-grow: 1;    /* Füllt den restlichen Platz der main-container-data aus */
+    min-height: 0;   /* WICHTIG: Erlaubt den Charts zu schrumpfen statt zu scrollen */
+    width: 100%;
+}
+
+/* 3. Linke Spalte (Die beiden runden Charts) */
+.charts-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 45vh;
+    height: 100%;
+}
+
+/* 4. Gemeinsames Karten-Styling */
+.chart-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-top: 4px solid #4e73df;
+    width: 95%;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;   /* Verhindert, dass die Karte "platzt" */
+}
+
+/* Die beiden linken Karten teilen sich den Platz 50/50 */
+.charts-column .chart-card {
+    flex: 1; 
+}
+
+/* 5. Die rechte Balken-Karte (Saldo) */
+.bar-card {
+    flex: 1;         /* Nimmt den gesamten restlichen Platz rechts ein */
+    height: 97%;
+    min-width: 200px;
+}
+
+/* 6. Canvas-Wrapper (Damit Chart.js weiß, wie groß es sein darf) */
+.canvas-wrapper, .bar-wrapper {
+    position: relative;
+    flex-grow: 1;    /* Füllt den Platz innerhalb der Karte unter dem Titel */
+    min-height: 0;   /* Absolut kritisch für Chart.js in Flexbox-Containern */
+}
+
+.chart-card h3 {
+    text-align: center;
+    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+}

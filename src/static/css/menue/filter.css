@@ -2,11 +2,12 @@
 
 .filter-panel {
     flex: 0 0 280px;
-    background: white;
     padding: 15px;
+    margin-left: 10px;
+    background-color: white; 
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    max-height: 100%;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+    height: 800px;
 }
 
 .filter-panel h3 {
