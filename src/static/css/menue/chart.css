@@ -3,8 +3,8 @@
     display: flex;
     flex-direction: column;
     /* 100vh = volle Fensterhöhe. Wir ziehen ca. 120px für Nav/Stats ab */
-    height: calc(100vh - 110px); 
-    min-height: 800px; /* Verhindert, dass es auf winzigen Bildschirmen unbrauchbar klein wird */
+    height: calc(100vh - 96px); 
+    min-height: 810px; /* Verhindert, dass es auf winzigen Bildschirmen unbrauchbar klein wird */
     overflow: hidden;  /* Verhindert Scrollen auf der Seite */
     box-sizing: border-box;
     padding-bottom: 10px;
@@ -52,7 +52,7 @@
 /* 5. Die rechte Balken-Karte (Saldo) */
 .bar-card {
     flex: 1;         /* Nimmt den gesamten restlichen Platz rechts ein */
-    height: 97%;
+    height: 96%;
     min-width: 200px;
 }
 

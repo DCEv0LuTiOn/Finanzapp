@@ -1,0 +1,58 @@
+<div id="manageKategorienModal" class="modal">
+    <div class="modal-content manage-list-content">
+        <span class="close" onclick="closeManageKategorien()">&times;</span>
+        
+        <h3>🏷️ Kategorien verwalten</h3>
+        <hr>
+        
+        <div class="table-wrapper manage-table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Bezeichnung</th>
+                        <th class="actions-cell">Aktion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kat in kategorien %}
+                    <tr>
+                        <td>{{ kat.Bezeichnung }}</td>
+                        <td class="actions-cell">
+                            <div class="action-buttons">
+                                <button type="button" class="edit-btn-small" 
+                                        onclick="openKategorieEditSingle('{{ kat.ID }}', '{{ kat.Bezeichnung }}')">
+                                    📝 Bearbeiten
+                                </button>
+                                
+                                <form action="{{ url_for('delete_kategorie', kat_id=kat.ID) }}" method="POST" 
+                                      onsubmit="return confirm('Kategorie wirklich löschen?');" style="display:inline;">
+                                    <button type="submit" class="delete-btn-small" title="Löschen">🗑️</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="editKategorieSingleModal" class="modal single-edit-modal">
+    <div class="modal-content single-edit-content">
+        <span class="close" onclick="closeKategorieEditSingle()">&times;</span>
+        
+        <h4>Kategorie umbenennen</h4>
+        
+        <form action="{{ url_for('update_kategorie') }}" method="POST">
+            <input type="hidden" id="single-edit-kat-id" name="id">
+            
+            <div class="form-group">
+                <label for="single-edit-kat-bezeichnung">Bezeichnung:</label>
+                <input type="text" id="single-edit-kat-bezeichnung" name="bezeichnung" required>
+            </div>
+            
+            <button type="submit" class="btn-save-full">Speichern</button>
+        </form>
+    </div>
+</div>

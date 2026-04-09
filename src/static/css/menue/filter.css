@@ -7,7 +7,7 @@
     background-color: white; 
     border-radius: 10px;
     box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
-    height: 800px;
+    height: 810px;
 }
 
 .filter-panel h3 {
@@ -24,6 +24,8 @@
 }
 
 .filter-section:last-child {
+    margin-bottom: 0px;
+    padding-bottom: 0px;
     border-bottom: none;
 }
 
@@ -97,7 +99,6 @@
     border-radius: 4px;
     cursor: pointer;
     font-weight: 600;
-    margin-top: 15px;
     transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
 }
 

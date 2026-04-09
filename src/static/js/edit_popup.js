@@ -1,3 +1,6 @@
+/**
+ * 1. TRANSATION EDIT POPUP
+ */
 function openEditPopup(id, iban, name, zweck, betrag, datum, artId, bemerkung, katId) {
     const modal = document.getElementById('editModal');
     
@@ -9,17 +12,11 @@ function openEditPopup(id, iban, name, zweck, betrag, datum, artId, bemerkung, k
     document.getElementById('edit-datum').value = datum;
     document.getElementById('edit-bemerkung').value = (bemerkung !== 'None' && bemerkung !== '') ? bemerkung : '';
     
-    // Buchungsart Dropdown setzen
     const artSelect = document.getElementById('edit-buchungsart');
-    if (artSelect) {
-        artSelect.value = artId;
-    }
+    if (artSelect) artSelect.value = artId;
 
-    // Kategorie Dropdown setzen
     const katSelect = document.getElementById('edit-kategorie');
-    if (katSelect) {
-        katSelect.value = (katId && katId !== 'None') ? katId : 'null';
-    }
+    if (katSelect) katSelect.value = (katId && katId !== 'None') ? katId : 'null';
 
     modal.style.display = "block";
 }
@@ -28,9 +25,66 @@ function closePopup() {
     document.getElementById('editModal').style.display = "none";
 }
 
+/**
+ * 2. KONTEN VERWALTUNG (LISTE & SINGLE EDIT)
+ */
+function openManageKontenPopup() {
+    document.getElementById('manageKontenModal').style.display = "block";
+}
+
+function closeManageKonten() {
+    document.getElementById('manageKontenModal').style.display = "none";
+}
+
+function openKontoEditSingle(iban, name) {
+    document.getElementById('single-edit-konto-iban').value = iban;
+    document.getElementById('display-konto-iban').value = iban;
+    document.getElementById('single-edit-konto-name').value = name;
+    document.getElementById('editKontoSingleModal').style.display = "block";
+}
+
+function closeKontoEditSingle() {
+    document.getElementById('editKontoSingleModal').style.display = "none";
+}
+
+/**
+ * 3. KATEGORIEN VERWALTUNG (LISTE & SINGLE EDIT)
+ */
+function openManageKategorienPopup() {
+    document.getElementById('manageKategorienModal').style.display = "block";
+}
+
+function closeManageKategorien() {
+    document.getElementById('manageKategorienModal').style.display = "none";
+}
+
+function openKategorieEditSingle(id, bezeichnung) {
+    document.getElementById('single-edit-kat-id').value = id;
+    document.getElementById('single-edit-kat-bezeichnung').value = bezeichnung;
+    document.getElementById('editKategorieSingleModal').style.display = "block";
+}
+
+function closeKategorieEditSingle() {
+    document.getElementById('editKategorieSingleModal').style.display = "none";
+}
+
+/**
+ * GLOBALER CLICK-HANDLER (Schließen beim Klick nach draußen)
+ */
 window.onclick = function(event) {
-    const modal = document.getElementById('editModal');
-    if (event.target == modal) {
-        closePopup();
+    // Liste aller Modals
+    const modals = {
+        'editModal': closePopup,
+        'manageKontenModal': closeManageKonten,
+        'editKontoSingleModal': closeKontoEditSingle,
+        'manageKategorienModal': closeManageKategorien,
+        'editKategorieSingleModal': closeKategorieEditSingle
+    };
+
+    // Prüfen, ob das geklickte Element eines der Modals ist
+    for (let id in modals) {
+        if (event.target == document.getElementById(id)) {
+            modals[id]();
+        }
     }
 };

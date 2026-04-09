@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/data_edit/data_edit.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/data_edit/edit_row_popup.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/data_edit/manage_popups.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation.css') }}">
 </head>
 <body>
@@ -58,23 +59,38 @@
                     </div>
                 </div>
 
-                <div>
+                <div class="selection-column">
                     <div class="filter-section">
-                        <label>Konten</label>
+                        <div class="section-header">
+                            <label>Konten</label>
+                            <button type="button" class="btn-manage" onclick="openManageKontenPopup()">⚙️ Verwalten</button>
+                        </div>
                         <div class="checkbox-group">
                             {% for konto in konten %}
-                                <label><input type="checkbox" name="konto" value="{{ konto.IBAN }}" {% if konto.IBAN|string in selected_konten %}checked{% endif %}> {{ konto.Konto_Name + " | " + konto.IBAN }}</label>
+                                <label>
+                                    <input type="checkbox" name="konto" value="{{ konto.IBAN }}" {% if konto.IBAN|string in selected_konten %}checked{% endif %}> 
+                                    {{ konto.Konto_Name + " | " + konto.IBAN }}
+                                </label>
                             {% endfor %}
                         </div>
                     </div>
 
                     <div class="filter-section">
-                        <label>Kategorie</label>
+                        <div class="section-header">
+                            <label>Kategorie</label>
+                            <button type="button" class="btn-manage" onclick="openManageKategorienPopup()">⚙️ Verwalten</button>
+                        </div>
                         <div class="checkbox-group">
                             {% for kategorie in kategorien %}
-                                <label><input type="checkbox" name="kategorie" value="{{ kategorie.ID }}" {% if kategorie.ID|string in selected_kategorien %}checked{% endif %}> {{ kategorie.Bezeichnung }}</label>
+                                <label>
+                                    <input type="checkbox" name="kategorie" value="{{ kategorie.ID }}" {% if kategorie.ID|string in selected_kategorien %}checked{% endif %}> 
+                                    {{ kategorie.Bezeichnung }}
+                                </label>
                             {% endfor %}
-                            <label><input type="checkbox" name="kategorie" value="null" {% if "null" in selected_kategorien %}checked{% endif %}>Keine Kategorie</label>
+                            <label>
+                                <input type="checkbox" name="kategorie" value="null" {% if "null" in selected_kategorien %}checked{% endif %}>
+                                Keine Kategorie
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -83,73 +99,79 @@
             <button type="submit" class="btn-green" name="btn_filter_transaktion" value="filter">Filter anwenden</button>
         </form>
 
-       <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>IBAN Auftrag</th>
-                    <th>IBAN Beteiligter</th>
-                    <th>Name Beteiligter</th>
-                    <th>Zweck</th>
-                    <th>Betrag</th>
-                    <th>Saldo</th>
-                    <th>Datum</th>
-                    <th>Art</th>
-                    <th>Kategorie</th>
-                    <th>Bemerkung</th>
-                    <th>Aktion</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in data %}
-                <tr>
-                    <td>{{ row.ID }}</td>
-                    <td>{{ row.IBAN_Auftragskonto if row.IBAN_Auftragskonto else '' }}</td>
-                    <td>{{ row.IBAN_Zahlungsbeteiligter if row.IBAN_Zahlungsbeteiligter else '' }}</td>
-                    <td>{{ row.Name_Zahlungsbeteiligter if row.Name_Zahlungsbeteiligter else '' }}</td>
-                    <td>{{ row.Verwendungszweck if row.Verwendungszweck else '' }}</td>
-                    <td class="{{ 'text-green' if row.Betrag and row.Betrag > 0 else 'text-red' }}">
-                        {{ row.Betrag | round(2) }} €
-                    </td>                
-                    <td>{{ row.Saldo_nach_Buchung | round(2) if row.Saldo_nach_Buchung else '0.00' }} €</td>
-                    <td>{{ row.Transaktions_Datum }}</td>
-                    <td>{{ row.Buchungsart if row.Buchungsart else '' }}</td>
-                    <td>
-                        <span class="badge" style="background-color: #e8f4ff; padding: 3px 8px; border-radius: 4px;">
-                            {{ row.Kategorie if row.Kategorie else 'Keine Kategorie' }}
-                        </span>
-                    </td>
-                    <td>{{ row.Bemerkung if row.Bemerkung else '' }}</td>
-                    
-                    <td style="display: flex; gap: 5px;">
-                        <button class="edit-btn" title="Bearbeiten"
-                                onclick="openEditPopup(
-                                    '{{ row.ID }}', 
-                                    '{{ row.IBAN_Zahlungsbeteiligter }}', 
-                                    '{{ row.Name_Zahlungsbeteiligter }}', 
-                                    '{{ row.Verwendungszweck }}', 
-                                    '{{ row.Betrag }}', 
-                                    '{{ row.Transaktions_Datum }}', 
-                                    '{{ row.Buchungsart_ID }}', 
-                                    '{{ row.Bemerkung }}', 
-                                    '{{ row.Kategorie_ID }}'
-                                )">
-                            <img src="{{ url_for('static', filename='img/edit_icon.png') }}" style="width:25px;">
-                        </button>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>IBAN Auftrag</th>
+                        <th>IBAN Beteiligter</th>
+                        <th>Name Beteiligter</th>
+                        <th>Zweck</th>
+                        <th>Betrag</th>
+                        <th>Saldo</th>
+                        <th>Datum</th>
+                        <th>Art</th>
+                        <th>Kategorie</th>
+                        <th>Bemerkung</th>
+                        <th>Aktion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row.ID }}</td>
+                        <td>{{ row.IBAN_Auftragskonto if row.IBAN_Auftragskonto else '' }}</td>
+                        <td>{{ row.IBAN_Zahlungsbeteiligter if row.IBAN_Zahlungsbeteiligter else '' }}</td>
+                        <td>{{ row.Name_Zahlungsbeteiligter if row.Name_Zahlungsbeteiligter else '' }}</td>
+                        <td>{{ row.Verwendungszweck if row.Verwendungszweck else '' }}</td>
+                        <td class="{{ 'text-green' if row.Betrag and row.Betrag > 0 else 'text-red' }}">
+                            {{ row.Betrag | round(2) }} €
+                        </td>                
+                        <td>{{ row.Saldo_nach_Buchung | round(2) if row.Saldo_nach_Buchung else '0.00' }} €</td>
+                        <td>{{ row.Transaktions_Datum }}</td>
+                        <td>{{ row.Buchungsart if row.Buchungsart else '' }}</td>
+                        <td>
+                            <span class="badge" style="background-color: #e8f4ff; padding: 3px 8px; border-radius: 4px;">
+                                {{ row.Kategorie if row.Kategorie else 'Keine Kategorie' }}
+                            </span>
+                        </td>
+                        <td>{{ row.Bemerkung if row.Bemerkung else '' }}</td>
+                        
+                        <td style="display: flex; gap: 5px;">
+                            <button class="edit-btn" title="Bearbeiten"
+                                    onclick="openEditPopup(
+                                        '{{ row.ID }}', 
+                                        '{{ row.IBAN_Zahlungsbeteiligter }}', 
+                                        '{{ row.Name_Zahlungsbeteiligter }}', 
+                                        '{{ row.Verwendungszweck }}', 
+                                        '{{ row.Betrag }}', 
+                                        '{{ row.Transaktions_Datum }}', 
+                                        '{{ row.Buchungsart_ID }}', 
+                                        '{{ row.Bemerkung }}', 
+                                        '{{ row.Kategorie_ID }}'
+                                    )">
+                                <img src="{{ url_for('static', filename='img/edit_icon.png') }}" style="width:25px;">
+                            </button>
 
-                        <button class="edit-btn" title="Löschen"> 
-                            <img src="{{ url_for('static', filename='img/recyclebin.png') }}" style="width:25px;">
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            <form action="{{ url_for('delete_transaction', trans_id=row.ID) }}" method="POST" 
+                                    onsubmit="return confirm('Möchtest du diese Transaktion wirklich unwiderruflich löschen?');">
+                                <button type="submit" class="edit-btn" title="Löschen"> 
+                                    <img src="{{ url_for('static', filename='img/recyclebin.png') }}" style="width:25px;">
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+
     {% include 'data_edit/edit_row_popup.html' %}
+    {% include 'data_edit/manage_konten_popup.html' %}
+    {% include 'data_edit/manage_kategorien_popup.html' %}
 
     <script src="{{ url_for('static', filename='js/edit_popup.js') }}"></script>
-</body>
 </body>
 </html>

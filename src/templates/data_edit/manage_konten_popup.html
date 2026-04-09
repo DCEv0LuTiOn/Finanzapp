@@ -1,0 +1,46 @@
+<div id="manageKontenModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeManageKonten()">&times;</span>
+        <h3>🏦 Konten verwalten</h3>
+        <hr>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>IBAN</th>
+                    <th>Aktion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for konto in konten %}
+                <tr>
+                    <td>{{ konto.Konto_Name }}</td>
+                    <td>{{ konto.IBAN }}</td>
+                    <td>
+                        <button type="button" class="edit-btn" onclick="openKontoEditSingle('{{ konto.IBAN }}', '{{ konto.Konto_Name }}')">📝</button>
+                        
+                        <form action="{{ url_for('delete_konto', iban=konto.IBAN) }}" method="POST" style="display:inline;" onsubmit="return confirm('Wirklich löschen?\nEs werden alle Transaktionen mit gelöscht!');">
+                            <button type="submit" class="edit-btn">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="editKontoSingleModal" class="modal" style="z-index: 2000;">
+    <div class="modal-content" style="max-width: 400px;">
+        <span class="close" onclick="closeKontoEditSingle()">&times;</span>
+        <h4>Konto umbenennen</h4>
+        <form action="{{ url_for('update_konto') }}" method="POST">
+            <input type="hidden" id="single-edit-konto-iban" name="iban">
+            <label>IBAN:</label>
+            <input type="text" id="display-konto-iban" disabled style="width:100%; margin-bottom:10px;">
+            <label>Neuer Name:</label>
+            <input type="text" id="single-edit-konto-name" name="neuer_name" required style="width:100%;">
+            <button type="submit" class="btn-green" style="width:100%; margin-top:15px;">Speichern</button>
+        </form>
+    </div>
+</div>

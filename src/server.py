@@ -127,6 +127,7 @@ def menue():
     selected_konten = filter_daten["selected_konten"]
     
     transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
+    print(len(transaktionen))
     ausgaben_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag < 0])
     einnahmen_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag > 0])
     kontostand = sum([konto.Saldo for konto in konten if konto.IBAN in selected_konten])
@@ -170,7 +171,12 @@ def menue():
 @app.route("/data_input")
 @login_required
 def data_input():
-    return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")))
+    return render_template("data_input.html", 
+                           user_name=session.get("name"), 
+                           buchungsarten=db.get_all_buchungsarten(),
+                           kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), 
+                           waehrungen=db.get_all_waehrungen(), 
+                           konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")))
 
 #Menue ausliefern
 @app.route("/data_edit", methods=["GET", "POST"])
@@ -232,6 +238,62 @@ def data_edit():
                             buchungsarten=buchungsarten,
                             filter_data=filter_data,
                             data=data)
+
+# data_edit
+@app.route("/update_konto", methods=["POST"])
+@login_required
+def update_konto():
+    iban = request.form.get("iban")
+    neuer_name = request.form.get("neuer_name")
+
+    if iban and neuer_name:
+        konto:KontoDTO = db.get_konto_by_iban(iban)
+        konto.Konto_Name = neuer_name
+        db.execute_update_dtos(konto)    
+    return redirect(url_for("data_edit"))
+
+# data_edit
+@app.route("/delete_konto_form/<iban>", methods=["POST"])
+@login_required
+def delete_konto(iban):
+    konto:KontoDTO = db.get_konto_by_iban(iban)
+    transaktionen:list[TransaktionDTO] = db.get_Transaktionen_by_konto_iban(iban)
+    db.execute_delete_dtos(transaktionen)
+    db.execute_delete_dtos(konto)
+    return redirect(url_for("data_edit"))
+
+# data_edit
+@app.route("/update_kategorie", methods=["POST"])
+@login_required
+def update_kategorie():
+    kat_id = request.form.get("id")
+    bezeichnung = request.form.get("bezeichnung")
+    user_id = session.get("user_id")
+    
+    if kat_id and bezeichnung:
+        kategorie:KategorieDTO = KategorieDTO(kat_id, bezeichnung, user_id)
+        db.execute_update_dtos(kategorie)
+        
+    return redirect(url_for("data_edit"))
+
+# data_edit
+@app.route("/delete_kategorie/<int:kat_id>", methods=["POST"])
+@login_required
+def delete_kategorie(kat_id):
+    kategorie:KategorieDTO = db.get_kategorie_by_id(kat_id)
+    transaktionen:list[TransaktionDTO] = db.get_Transaktionen_by_kategorie_id(kat_id)
+    for transaktion in transaktionen:
+        transaktion.Kategorie_ID = None  # Kategorie entfernen, Transaktion aber behalten
+    db.execute_update_dtos(transaktionen)  # Alle betroffenen Transaktionen aktualisieren
+    db.execute_delete_dtos(kategorie)
+    return redirect(url_for("data_edit"))
+
+@app.route("/delete_transaction/<int:trans_id>", methods=["POST"])
+@login_required
+def delete_transaction(trans_id):
+    transaktion:TransaktionDTO = db.get_transaktion_by_id(trans_id)
+    db.execute_delete_dtos(transaktion)
+    return redirect(url_for("data_edit"))
 
 #Menue ausliefern
 @app.route("/update_transaktion", methods=["POST"])  # GET ist hier meist nicht nötig
@@ -385,6 +447,7 @@ def filterdatum_auslesen(filter_btn):
 
 #Dateininput 
 @app.route("/data_input", methods=["POST"])
+@login_required
 def data_input_post():
 
     error = None
