@@ -7,7 +7,8 @@
     background-color: white; 
     border-radius: 10px;
     box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
-    height: 810px;
+    display: flex;
+    flex-direction: column;
 }
 
 .filter-panel h3 {
@@ -36,7 +37,7 @@
     font-size: 13px;
 }
 
-.filter-section input{
+.filter-section input {
     width: 95%;
     padding: 8px;
     margin-bottom: 8px;
@@ -68,10 +69,27 @@
     background: #e0e0e0;
 }
 
+/* Scrollbare Checkbox-Gruppe */
 .checkbox-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    
+    /* Hier sind die Änderungen für das Scrollen */
+    max-height: 150px;       /* Begrenzt die Höhe */
+    overflow-y: auto;        /* Zeigt Scrollbar bei Bedarf */
+    padding-right: 5px;      /* Platz für den Scrollbar */
+    padding-bottom: 5px;
+}
+
+/* Optional: Schönerer Scrollbar für moderne Browser */
+.checkbox-group::-webkit-scrollbar {
+    width: 5px;
+}
+
+.checkbox-group::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
 }
 
 .checkbox-group label {
@@ -81,6 +99,10 @@
     margin: 0;
     font-size: 13px;
     gap: 8px;
+    /* Verhindert Textumbruch bei langen Namen, falls gewünscht */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .checkbox-group input[type="checkbox"] {
@@ -88,6 +110,7 @@
     cursor: pointer;
     width: 16px;
     height: 16px;
+    margin: 0; /* Reset für saubere Ausrichtung */
 }
 
 .apply-filters-btn {
@@ -100,6 +123,7 @@
     cursor: pointer;
     font-weight: 600;
     transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    margin-top: auto; /* Schiebt den Button ans Ende des Panels */
 }
 
 .apply-filters-btn:hover {
