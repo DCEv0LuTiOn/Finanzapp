@@ -481,10 +481,10 @@ def data_input_post():
             error = "Betrag ist ungültig! Bitte nur Zahlen eingeben, Dezimaltrennzeichen ist ein Komma!"
 
         #Saldo nach Buchung
-        elif str.strip(request.form.get("txt_saldo_nach_buchung_insert")) == "":
-            error = "Saldo nach Buchung darf nicht leer sein!"
-        elif betrag_valid(str.strip(request.form.get("txt_saldo_nach_buchung_insert"))) == False:
-            error = "Saldo nach Buchung ist ungültig! Bitte nur Zahlen eingeben, Dezimaltrennzeichen ist ein Komma!"
+        # elif str.strip(request.form.get("txt_saldo_nach_buchung_insert")) == "":
+        #     error = "Saldo nach Buchung darf nicht leer sein!"
+        # elif betrag_valid(str.strip(request.form.get("txt_saldo_nach_buchung_insert"))) == False:
+        #     error = "Saldo nach Buchung ist ungültig! Bitte nur Zahlen eingeben, Dezimaltrennzeichen ist ein Komma!"
 
         #Transaktionsdatum
         elif str.strip(request.form.get("txt_transaktionsdatum_insert")) == "":
@@ -511,10 +511,15 @@ def data_input_post():
                 Transaktions_Datum=datum,
                 Buchungsart_ID=request.form.get("ddm_buchungsart_insert"),
                 Kategorie_ID=request.form.get("ddm_kategorie_insert"),
-                Saldo_nach_Buchung=float(request.form.get("txt_saldo_nach_buchung_insert").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_insert") else 0.00),
                 Bemerkung=request.form.get("txt_bemerkung_insert")
             )
+        # Berechnet den neuen Saldo des Kontos nach der Buchung und aktualisiert diesen in der Datenbank
+        konto:KontoDTO = db.get_konto_by_iban(transaction.IBAN_Auftragskonto)
+        konto.Saldo += transaction.Betrag
+        transaction.Saldo_nach_Buchung = konto.Saldo
+
         db.execute_insert_dtos(transaction)
+        db.execute_update_dtos(konto)
         return render_template("data_input.html", user_name=session.get("name"), buchungsarten=db.get_all_buchungsarten(),kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), waehrungen=db.get_all_waehrungen(), konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), transaction_correct="Transaktion erfolgreich hinzugefügt!")    
 
 
@@ -689,10 +694,14 @@ def extract_data(file) -> list[TransaktionDTO]:
                 Verwendungszweck=first_row.get("Verwendungszweck"),
                 Betrag=float(first_row.get("Betrag").replace(",", ".")),
                 Transaktions_Datum=first_row.get("Valutadatum"),
-                Buchungsart_ID=db.get_id_by_buchungsart(first_row.get("Buchungstext")).ID,
-                Saldo_nach_Buchung=float(first_row.get("Saldo nach Buchung").replace(",", ".") if first_row.get("Saldo nach Buchung") else 0.00)
+                Buchungsart_ID=db.get_id_by_buchungsart(first_row.get("Buchungstext")).ID
             )
-        db.execute_insert_dtos(transaction)        
+        
+        konto:KontoDTO = db.get_konto_by_iban(transaction.IBAN_Auftragskonto)
+        konto.Saldo += transaction.Betrag
+        transaction.Saldo_nach_Buchung = konto.Saldo
+        db.execute_update_dtos(konto)
+        list_data.append(transaction)      
 
         for row in reader:
             
@@ -707,13 +716,19 @@ def extract_data(file) -> list[TransaktionDTO]:
                 Verwendungszweck=row.get("Verwendungszweck"),
                 Betrag=float(row.get("Betrag").replace(",", ".")),
                 Transaktions_Datum=row.get("Valutadatum"),
-                Buchungsart_ID=db.get_id_by_buchungsart(row.get("Buchungstext")).ID,
-                Saldo_nach_Buchung=float(row.get("Saldo nach Buchung").replace(",", ".") if row.get("Saldo nach Buchung") else 0.00)
+                Buchungsart_ID=db.get_id_by_buchungsart(row.get("Buchungstext")).ID
             )
 
+            # Saldo nach Buchung berechnen: aktueller Saldo des Kontos + Betrag der Transaktion
+            konto:KontoDTO = db.get_konto_by_iban(transaction.IBAN_Auftragskonto)
+            konto.Saldo += transaction.Betrag
+            transaction.Saldo_nach_Buchung = konto.Saldo
+            db.execute_update_dtos(konto)
             list_data.append(transaction)
 
         db.execute_insert_dtos(list_data)
+
+
     return list_data
 
 #prüfen ob Sonderzeichen in einem String vorhanden sind
