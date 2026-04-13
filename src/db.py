@@ -4,6 +4,9 @@ import sys
 from contextlib import closing
 from tkinter import LEFT
 from dtos import *
+import os
+import sys
+
 
 def get_dto_data(dto:object): # Daten aus dto lesen und zurück geben
     table_name = dto.__class__.__name__[:dto.__class__.__name__.find("DTO")] # Holt sich aus der DTO den Namen der Klasse und schneidet DTO ab am ende
@@ -545,7 +548,16 @@ def __insert_test_data():
 
         connection.commit()
 
-__db_path = "./src/Database.db"
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        # Pfad im PyInstaller-Temp-Ordner
+        return os.path.join(sys._MEIPASS, relative_path)
+    # Pfad im normalen Projekt
+    return os.path.join(os.path.abspath("./src"), relative_path)
+
+
+# __db_path = "./src/Database.db"
+__db_path = resource_path("Database.db")
 
 if __name__ == "__main__":
     # __create_Database()
