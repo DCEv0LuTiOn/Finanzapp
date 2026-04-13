@@ -227,7 +227,7 @@ def get_filtered_transaktionen(transaktion_filter: TransaktionDTO, user_id: int,
     # Basis-SQL
     sql = """
         SELECT t.ID, t.IBAN_Auftragskonto, t.IBAN_Zahlungsbeteiligter, t.Name_Zahlungsbeteiligter, 
-               t.Verwendungszweck, t.Betrag, t.Saldo_nach_Buchung, t.Transaktions_Datum, 
+               t.Verwendungszweck, t.Betrag, t.Saldo_nach_Buchung, strftime('%d.%m.%Y',t.Transaktions_Datum) as Transaktions_Datum, 
                t.Bemerkung, t.Kategorie_ID, k2.Bezeichnung as Kategorie, t.Buchungsart_ID, b.Buchungsart 
         FROM Kontoinhaber i 
         JOIN Konto k ON i.ID = k.Kontoinhaber_ID 
@@ -300,11 +300,11 @@ def get_filtered_transaktionen(transaktion_filter: TransaktionDTO, user_id: int,
     has_bis = datumBis and str(datumBis).strip() != "" and datumBis != "0000-00-00"
 
     if has_von and has_bis:
-        sql += " AND t.Transaktions_Datum BETWEEN :Transaktions_Datum_von AND :Transaktions_Datum_bis"
+        sql += " AND (date(t.Transaktions_Datum) BETWEEN :Transaktions_Datum_von AND :Transaktions_Datum_bis)"
         wheres["Transaktions_Datum_von"] = datum_von
         wheres["Transaktions_Datum_bis"] = datumBis
     elif has_von:
-        sql += " AND t.Transaktions_Datum = :Transaktions_Datum_von"
+        sql += " AND date(t.Transaktions_Datum) = :Transaktions_Datum_von"
         wheres["Transaktions_Datum_von"] = datum_von
 
     sql += " ORDER BY t.Transaktions_Datum DESC"
