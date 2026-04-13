@@ -393,6 +393,7 @@ def get_filter_daten() -> list[TransaktionDTO]:
             "selected_konten": selected_konten}
 
 def filterdatum_auslesen(filter_btn):
+    #Fiterfunktion für das Menü
     today = datetime.now().date()
     start_date = ""
     end_date = ""
@@ -580,6 +581,7 @@ def input_transaction():
 
 def input_konto():
         error = None
+        
         #Plausibilitätsprüfungen für die Kontodaten
         #IBAN  
         if str.strip(request.form.get("txt_iban_konto_insert")) == "":
@@ -647,7 +649,9 @@ def input_konto():
     
 
 def input_kategorie():
+    #Funktion fügt eine neue Kategorie mit ein
     error = None
+
     #Plausibilitätsprüfungen
     #Kategorie Name
     if str.strip(request.form.get("txt_kategorie_name_insert")) == "":
@@ -681,6 +685,7 @@ def input_kategorie():
     
 
 def input_bank():
+        #Funktion fügt eine neue Bank ein 
         error = None
         #Plausibilitätsprüfungen
         #BLZ
@@ -736,9 +741,11 @@ def extract_data(file) -> list[TransaktionDTO]:
             Name=first_row["Bankname Auftragskonto"]
         )
 
+        #Prüft ob die jeweilige Bank bereits in der Datenbank vorhanden ist, wenn nicht wird sie eingefügt
         if db.get_bank_by_blz(new_bank.BLZ) is None:
             db.execute_insert_dtos(new_bank)
 
+        #Prüft ob die jeweilige Währung bereits in der Datenbank vorhanden ist, wenn nicht wird sie eingefügt
         waehrung = WaehrungDTO(Waehrung=first_row["Waehrung"])
         if db.get_id_by_waehrung(first_row.get("Waehrung")) is None:
             db.execute_insert_dtos(waehrung)
@@ -753,9 +760,11 @@ def extract_data(file) -> list[TransaktionDTO]:
             Waehrung_ID=db.get_id_by_waehrung(first_row.get("Waehrung")).ID
         )
 
+        #Prüft ob das jeweilige Konto bereits in der Datenbank vorhanden ist, wenn nicht wird es eingefügt
         if db.get_konto_by_iban(new_konto.IBAN) is None:
             db.execute_insert_dtos(new_konto)   
 
+        #Prüft ob die jeweilige Buchungsart bereits in der Datenbank vorhanden ist, wenn nicht wird sie eingefügt
         new_buchungsart = BuchungsartDTO(Buchungsart=first_row.get("Buchungstext"))
         if db.get_id_by_buchungsart(new_buchungsart.Buchungsart) is None: 
                 db.execute_insert_dtos(new_buchungsart)
@@ -770,16 +779,21 @@ def extract_data(file) -> list[TransaktionDTO]:
                 Name_Zahlungsbeteiligter=first_row.get("Name Zahlungsbeteiligter"),
                 Verwendungszweck=first_row.get("Verwendungszweck"),
                 Betrag=float(first_row.get("Betrag").replace(",", ".")),
-                Transaktions_Datum=first_row.get("Valutadatum"),
-                Buchungsart_ID=db.get_id_by_buchungsart(first_row.get("Buchungstext")).ID
+                Transaktions_Datum=datum,
+                # Kategorie_ID=1,
+                Buchungsart_ID=db.get_id_by_buchungsart(first_row.get("Buchungstext")).ID,
+                Bemerkung=""
             )
         
         konto:KontoDTO = db.get_konto_by_iban(transaction.IBAN_Auftragskonto)
         konto.Saldo += transaction.Betrag
         transaction.Saldo_nach_Buchung = konto.Saldo
         db.execute_update_dtos(konto)
-        list_data.append(transaction)      
-
+        # list_data.append(transaction)  
+        # Man könnte es auch wie in der zeile darüber über die Liste appenden und am Ende ausführen     
+        db.execute_insert_dtos(transaction)
+        
+        #geht zeile für zeile durch die csv datei durch und fügt die Daten in die Datenbank ein, dabei werden auch die Konten, Banken, Buchungsarten und Währungen angelegt, wenn sie noch nicht vorhanden sind
         for row in reader:
             
             new_buchungsart = BuchungsartDTO(Buchungsart=row.get("Buchungstext"))
@@ -796,7 +810,8 @@ def extract_data(file) -> list[TransaktionDTO]:
                 Verwendungszweck=row.get("Verwendungszweck"),
                 Betrag=float(row.get("Betrag").replace(",", ".")),
                 Transaktions_Datum=datum,
-                Buchungsart_ID=db.get_id_by_buchungsart(row.get("Buchungstext")).ID
+                Buchungsart_ID=db.get_id_by_buchungsart(row.get("Buchungstext")).ID,
+                Bemerkung=""
             )
 
             # Saldo nach Buchung berechnen: aktueller Saldo des Kontos + Betrag der Transaktion
@@ -853,6 +868,7 @@ def bic_valid(bic: str) -> bool:
 
 #funktion prüft ob ein Betrag gültig ist, d.h. ob er nur Zahlen und maximal ein Dezimaltrennzeichen (Punkt oder Komma) enthält 
 def betrag_valid(betrag: str) -> bool:
+    #prüft ob ein Betrag richtig eingegeben wurde.
     if not betrag:
         return False
 
@@ -865,6 +881,7 @@ def betrag_valid(betrag: str) -> bool:
 
 
 def blz_valid(blz: str) -> bool:
+    #prüft ob eine BLZ gültig ist
     if not blz:
         return False
 

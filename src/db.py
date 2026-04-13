@@ -70,6 +70,8 @@ def execute_insert_dtos(dtos:object | list[object]):
 
                 # sql mit Named Parametern (z.b. insert table(name,email) values (:Name, :Email))
                 sql = f"INSERT INTO {table_name} ({', '.join(fields_to_insert)}) VALUES ({', '.join([":" + p for p in fields_to_insert])})"
+                print(sql)
+                print(values)
                 connection.execute(sql, values)
             connection.commit()
         except sqlite3.DatabaseError as e:
