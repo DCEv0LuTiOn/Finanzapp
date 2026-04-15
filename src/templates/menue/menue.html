@@ -61,6 +61,7 @@
                     <div class="chart-card bar-card"> 
                         <h3>Gewinn / Verlust pro Kategorie</h3>
                         <div class="canvas-wrapper bar-wrapper">
+                            <!-- HTML Canvas erstellen mit ID befüllt wir später über js skript -->
                             <canvas id="chartSaldo"></canvas>
                         </div>
                     </div>
@@ -73,12 +74,15 @@
         <script src="{{ url_for('static', filename='js/chart_logic.js') }}"></script>
         
         <script>
+            // Eventlistener bei Start der 
             document.addEventListener('DOMContentLoaded', function() {
+                // bridge ist das Div das aus der ID chart-data-bridge gespeichert wird
                 const bridge = document.getElementById('chart-data-bridge');
+                // wenn bridge und bridge.dataset gefüllt ist führt er die If aus (bridge.dataset = kategorie_dict aus server.py)
                 if (bridge && bridge.dataset.json) {
                     try {
                         const data = JSON.parse(bridge.dataset.json);
-                        // Diese Funktion kommt aus deiner chart_logic.js
+                        // Diese Funktion kommt aus deiner chart_logic.js und erstellt die Canvas Objekte, welche über die ID befüllt werden.(Canvas = Platzhalter für Grafik Objekte)
                         initFinanceChartsFromDict(data);
                     } catch (e) {
                         console.error("Fehler beim Initialisieren der Charts:", e);

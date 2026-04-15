@@ -1,5 +1,5 @@
 /**
- * Hilfsfunktionen für Farben
+ * Hilfsfunktionen für Farben, Hashwert der Kategoriebezeichnung bildet die Farbe ab.
  */
 function stringToColor(str) {
     let hash = 0;
@@ -15,6 +15,7 @@ function stringToColor(str) {
     return color;
 }
 
+// wenn Kategorie vorhanden ansonsten default Farbe
 function getDynamicColor(label) {
     if (!label || label === "Keine Kategorie" || label === "null") return '#858796';
     return stringToColor(label);
@@ -27,6 +28,7 @@ function initFinanceChartsFromDict(dataDict) {
     const allLabels = Object.keys(dataDict);
 
     // 1. Daten für Ausgaben (Doughnut)
+    //l => dataDict[l].ausgaben !== 0 Schleifendruchlauf = labelsAusgaben beinhaltet alle ausgaben (labelsAusgaben = liste aller Ausgaben)
     const labelsAusgaben = allLabels.filter(l => dataDict[l].ausgaben !== 0);
     const valuesAusgaben = labelsAusgaben.map(l => Math.abs(dataDict[l].ausgaben));
     const colorsAusgaben = labelsAusgaben.map(l => getDynamicColor(l));
@@ -55,7 +57,7 @@ function initFinanceChartsFromDict(dataDict) {
 
     // --- CHART INITIALISIERUNG ---
 
-    // Ausgaben Kreismonster
+    // Ausgaben Kreis
     new Chart(document.getElementById('chartAusgaben'), {
         type: 'doughnut',
         data: {
@@ -65,7 +67,7 @@ function initFinanceChartsFromDict(dataDict) {
         options: doughnutOptions
     });
 
-    // Einnahmen Kreismonster
+    // Einnahmen Kreis
     new Chart(document.getElementById('chartEinnahmen'), {
         type: 'doughnut',
         data: {

@@ -1,8 +1,8 @@
 /* --- MODAL BASIS --- */
 .modal {
-    display: none;
+    display: none; /*wird vorerst nicht angezeit wenn Popup aufgerufen wird wird es sichtbar gemacht (value = Block)*/
     position: fixed;
-    z-index: 1000;
+    z-index: 1000;  /*z-idex legt das Popup HTML über das Mainhtml*/
     left: 0; top: 0; width: 100%; height: 100%;
     background-color: rgba(0,0,0,0.5);
     backdrop-filter: blur(2px);
