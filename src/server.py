@@ -465,15 +465,24 @@ def data_input_post():
     # "uploaded_file" ist der Name des Input-Felds im HTML-Formular
         uploaded_file = request.files.get("file_csv_Upload") 
         if uploaded_file:
-            extract_data(uploaded_file)
-
-            return render_template("data_input.html", 
-                                   user_name=session.get("name"), 
-                                   kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), 
-                                   buchungsarten=db.get_all_buchungsarten(), 
-                                   waehrungen=db.get_all_waehrungen(),
-                                   konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), 
-                                   transaction_correct="CSV-Datei erfolgreich hochgeladen und Daten in die Datenbank eingefügt!")  
+            extracted_data = extract_data(uploaded_file)
+            if extracted_data == None:
+            
+                return render_template("data_input.html", 
+                                       user_name=session.get("name"), 
+                                       kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), 
+                                       buchungsarten=db.get_all_buchungsarten(), 
+                                       waehrungen=db.get_all_waehrungen(),
+                                       konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), 
+                                       transaction_error="Die Datei ist Fehlerhaft, bitte geben Sie eine gültige Datei ein!") 
+    
+        return render_template("data_input.html", 
+                               user_name=session.get("name"), 
+                               kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), 
+                               buchungsarten=db.get_all_buchungsarten(), 
+                               waehrungen=db.get_all_waehrungen(),
+                               konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), 
+                               transaction_correct="CSV-Datei erfolgreich hochgeladen und Daten in die Datenbank eingefügt!")  
  
     
     #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
@@ -730,6 +739,10 @@ def extract_data(file) -> list[TransaktionDTO]:
     
     list_data = []
     if file:
+        
+        filename = file.filename.lower()
+        if not filename.endswith(".csv"):
+            return None
 
         stream = file.stream.read().decode("utf-8").splitlines()
         reader = csv.DictReader(stream, delimiter=';')
