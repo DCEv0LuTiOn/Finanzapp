@@ -20,20 +20,18 @@
             <div>
                 <!-- Rechtes Formular: Datensatz einfügen -->
                 <form class="form-box" method="post">
-                    <h3>Transaktion einfügen:</h3>
-                    
-                    {% if transaction_error %}
-                    <div class="error-box">
-                        {{ transaction_error }}
-                    </div>
+                    <h3>Transaktion einfügen:</h3>                    
+                    {% if status %}
+                        {% if status == 0 %}
+                            <div class="correct-box">
+                                {{ transaction_msg }}
+                            </div>
+                        {% else %}
+                            <div class="error-box">
+                                {{ transaction_msg }}
+                            </div>
+                        {% endif %}
                     {% endif %}
-
-                    {% if transaction_correct %}
-                    <div class="correct-box">
-                        {{ transaction_correct }}
-                    </div>
-                    {% endif %}
-
                     <!--<label>ID:</label>-->
                     <!--<input type="text" name="id">-->
                     <div class="table-input">

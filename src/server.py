@@ -178,6 +178,59 @@ def data_input():
                            waehrungen=db.get_all_waehrungen(), 
                            konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")))
 
+#Dateininput 
+@app.route("/data_input", methods=["POST"])
+@login_required
+def data_input_post():
+
+    if  request.form.get("btn_transaktion_insert") == "transaktion":  
+        return input_transaction()
+
+    #Konto Insert Button                                                               
+    if  request.form.get("btn_konto_insert") == "konto": 
+        return input_konto()
+
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #Upload Button
+    if  request.form.get("btn_csv_upload") == "csv_upload":
+    # "uploaded_file" ist der Name des Input-Felds im HTML-Formular
+        uploaded_file = request.files.get("file_csv_Upload") 
+        status = extract_data(uploaded_file)
+
+        # Status-Messages für den Upload definieren
+        messages = {
+            0: "CSV-Datei erfolgreich hochgeladen und Daten in die Datenbank eingefügt!",
+            -1: "Es wurde keine Datei ausgewählt. Bitte wählen Sie eine CSV-Datei aus.",
+            -2: "Ungültiges Dateiformat oder fehlerhafter Import! Bitte prüfen Sie die Datei.",
+            -3: "Die Datei enthält ungültige Daten (z.B. falsches Datum oder Betrag).",
+            -4: "Sicherheitshinweis: Diese IBAN ist bereits einem anderen Konto zugeordnet."
+        }
+
+        # Nachricht basierend auf dem Status holen (mit Fallback für unbekannte Fehler)
+        transaction_msg = messages.get(status, "Ein unbekannter Fehler ist aufgetreten.")
+    
+        return render_template("data_input.html", 
+                               user_name=session.get("name"), 
+                               kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), 
+                               buchungsarten=db.get_all_buchungsarten(), 
+                               waehrungen=db.get_all_waehrungen(),
+                               konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), 
+                               transaction_msg=transaction_msg,
+                               status=status)  
+ 
+    
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #kategorien Button
+    if  request.form.get("btn_kategorien_insert") == "kategorien":    
+        return input_kategorie()
+
+    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
+    #bank Button
+    if  request.form.get("btn_bank_insert") == "bank":    
+        return input_bank()
+
+    return redirect(url_for("data_input"))
+
 #Menue ausliefern
 @app.route("/data_edit", methods=["GET", "POST"])
 @login_required
@@ -442,58 +495,6 @@ def filterdatum_auslesen(filter_btn):
     return (start_date, end_date)
 
 
-#Dateininput 
-@app.route("/data_input", methods=["POST"])
-@login_required
-def data_input_post():
-
-    if  request.form.get("btn_transaktion_insert") == "transaktion":  
-        return input_transaction()
-
-    #Konto Insert Button                                                               
-    if  request.form.get("btn_konto_insert") == "konto": 
-        return input_konto()
-
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #Upload Button
-    if  request.form.get("btn_csv_upload") == "csv_upload":
-    # "uploaded_file" ist der Name des Input-Felds im HTML-Formular
-        uploaded_file = request.files.get("file_csv_Upload") 
-        if uploaded_file:
-            extracted_data = extract_data(uploaded_file)
-            if extracted_data == None:
-            
-                return render_template("data_input.html", 
-                                       user_name=session.get("name"), 
-                                       kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), 
-                                       buchungsarten=db.get_all_buchungsarten(), 
-                                       waehrungen=db.get_all_waehrungen(),
-                                       konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), 
-                                       transaction_error="Die Datei ist Fehlerhaft, bitte geben Sie eine gültige Datei ein!") 
-    
-        return render_template("data_input.html", 
-                               user_name=session.get("name"), 
-                               kategorien=db.get_kategorien_by_kontoinhaber_id(session.get("user_id")), 
-                               buchungsarten=db.get_all_buchungsarten(), 
-                               waehrungen=db.get_all_waehrungen(),
-                               konten=db.get_all_konten_by_kontoinhaber_id(session.get("user_id")), 
-                               transaction_correct="CSV-Datei erfolgreich hochgeladen und Daten in die Datenbank eingefügt!")  
- 
-    
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #kategorien Button
-    if  request.form.get("btn_kategorien_insert") == "kategorien":    
-        return input_kategorie()
-
-    #welcher Button wurde gedrückt? -> über name des Buttons im HTML-Formular
-    #bank Button
-    if  request.form.get("btn_bank_insert") == "bank":    
-        return input_bank()
-
-    return redirect(url_for("data_input"))
-
-
-
 def input_transaction():
         #Plausibilitätsprüfungen für die Transaktionsdaten
         #Auftragskonto darf nicht leer sein
@@ -730,109 +731,120 @@ def input_bank():
                                bank_correct="Bank erfolgreich hinzugefügt!")
 
 
-def extract_data(file) -> list[TransaktionDTO]:
-    
-    list_data = []
-    if file:
+def extract_data(file) -> int:
+    # 1. Grundlegende Validierung
+    if file is None or file.filename == "":
+        return -1  # Keine Datei ausgewählt
+
+    dateiname = file.filename.lower()
+    if not dateiname.endswith(".csv"):
+        return -2  # Falsches Dateiformat
+
+    try:
+        # Datei einlesen
+        inhalt_stream = file.stream.read().decode("utf-8").splitlines()
+        csv_reader = csv.DictReader(inhalt_stream, delimiter=';')
         
-        filename = file.filename.lower()
-        if not filename.endswith(".csv"):
-            return None
+        # first_row zur Initialisierung holen
+        first_row = next(csv_reader, None)
+        if not first_row:
+            return -2  # Datei ist leer
 
-        stream = file.stream.read().decode("utf-8").splitlines()
-        reader = csv.DictReader(stream, delimiter=';')
+        aktuelle_user_id = session.get("user_id")
+        iban_auftragskonto = first_row.get("IBAN Auftragskonto")
+        
+        # 2. Sicherheits-Check: Gehört die IBAN einem anderen User?
+        existierendes_konto = db.get_konto_by_iban(iban_auftragskonto)
+        if existierendes_konto and existierendes_konto.Kontoinhaber_ID != aktuelle_user_id:
+            return -4  # Sicherheit: Fremdes Konto erkannt
 
-        first_row = next(reader, None)
+        # 3. Stammdaten vorbereiten
+        user_daten = db.get_user_by_id(aktuelle_user_id)
+        bankleitzahl = iban_auftragskonto[4:12]
+        
+        # Bank anlegen falls nötig
+        if db.get_bank_by_blz(bankleitzahl) is None:
+            neue_bank = BankDTO(BLZ=bankleitzahl, Name=first_row.get("Bankname Auftragskonto"))
+            db.execute_insert_dtos(neue_bank)
 
-        new_bank = BankDTO(
-            BLZ=first_row["IBAN Auftragskonto"][4:12],
-            Name=first_row["Bankname Auftragskonto"]
-        )
+        # Währung anlegen falls nötig
+        waehrung_bezeichnung = first_row.get("Waehrung")
+        if db.get_id_by_waehrung(waehrung_bezeichnung) is None:
+            neue_waehrung = WaehrungDTO(Waehrung=waehrung_bezeichnung)
+            db.execute_insert_dtos(neue_waehrung)
+        
+        waehrung_id = db.get_id_by_waehrung(waehrung_bezeichnung).ID
 
-        #Prüft ob die jeweilige Bank bereits in der Datenbank vorhanden ist, wenn nicht wird sie eingefügt
-        if db.get_bank_by_blz(new_bank.BLZ) is None:
-            db.execute_insert_dtos(new_bank)
-
-        #Prüft ob die jeweilige Währung bereits in der Datenbank vorhanden ist, wenn nicht wird sie eingefügt
-        waehrung = WaehrungDTO(Waehrung=first_row["Waehrung"])
-        if db.get_id_by_waehrung(first_row.get("Waehrung")) is None:
-            db.execute_insert_dtos(waehrung)
-
-        new_konto = KontoDTO(
-            IBAN=first_row["IBAN Auftragskonto"],
-            BIC=first_row["BIC Auftragskonto"],
-            BLZ=first_row["IBAN Auftragskonto"][4:12],
-            Konto_Name=db.get_user_by_id(session.get("user_id")).Vorname + " " + db.get_user_by_id(session.get("user_id")).Nachname + " Konto",
-            Kontoinhaber_ID=session.get("user_id"),
-            Saldo=0.00,
-            Waehrung_ID=db.get_id_by_waehrung(first_row.get("Waehrung")).ID
-        )
-
-        #Prüft ob das jeweilige Konto bereits in der Datenbank vorhanden ist, wenn nicht wird es eingefügt
-        if db.get_konto_by_iban(new_konto.IBAN) is None:
-            db.execute_insert_dtos(new_konto)   
-
-        #Prüft ob die jeweilige Buchungsart bereits in der Datenbank vorhanden ist, wenn nicht wird sie eingefügt
-        new_buchungsart = BuchungsartDTO(Buchungsart=first_row.get("Buchungstext"))
-        if db.get_id_by_buchungsart(new_buchungsart.Buchungsart) is None: 
-                db.execute_insert_dtos(new_buchungsart)
-
-
-        datum = datetime.strptime(first_row.get("Valutadatum"), "%d.%m.%Y")
-        datum = str(datum.strftime("%Y-%m-%d"))
-
-        transaction = TransaktionDTO(   
-                IBAN_Auftragskonto=first_row.get("IBAN Auftragskonto"),
-                IBAN_Zahlungsbeteiligter=first_row.get("IBAN Zahlungsbeteiligter"),
-                Name_Zahlungsbeteiligter=first_row.get("Name Zahlungsbeteiligter"),
-                Verwendungszweck=first_row.get("Verwendungszweck"),
-                Betrag=float(first_row.get("Betrag").replace(",", ".")),
-                Transaktions_Datum=datum,
-                # Kategorie_ID=1,
-                Buchungsart_ID=db.get_id_by_buchungsart(first_row.get("Buchungstext")).ID,
-                Bemerkung=""
+        # Konto-Objekt bestimmen
+        if not existierendes_konto:
+            neues_konto = KontoDTO(
+                IBAN=iban_auftragskonto,
+                BIC=first_row.get("BIC Auftragskonto"),
+                BLZ=bankleitzahl,
+                Konto_Name=f"{user_daten.Vorname} {user_daten.Nachname} Konto",
+                Kontoinhaber_ID=aktuelle_user_id,
+                Saldo=0.00,
+                Waehrung_ID=waehrung_id
             )
-        
-        konto:KontoDTO = db.get_konto_by_iban(transaction.IBAN_Auftragskonto)
-        konto.Saldo += transaction.Betrag
-        transaction.Saldo_nach_Buchung = konto.Saldo
-        db.execute_update_dtos(konto)
-        # list_data.append(transaction)  
-        # Man könnte es auch wie in der zeile darüber über die Liste appenden und am Ende ausführen     
-        db.execute_insert_dtos(transaction)
-        
-        #geht zeile für zeile durch die csv datei durch und fügt die Daten in die Datenbank ein, dabei werden auch die Konten, Banken, Buchungsarten und Währungen angelegt, wenn sie noch nicht vorhanden sind
-        for row in reader:
-            
-            new_buchungsart = BuchungsartDTO(Buchungsart=row.get("Buchungstext"))
-            if db.get_id_by_buchungsart(new_buchungsart.Buchungsart) is None: 
-                db.execute_insert_dtos(new_buchungsart)
+            db.execute_insert_dtos(neues_konto)
+            aktuelles_konto = db.get_konto_by_iban(iban_auftragskonto)
+        else:
+            aktuelles_konto = existierendes_konto
 
-            datum = datetime.strptime(row.get("Valutadatum"), "%d.%m.%Y")
-            datum = str(datum.strftime("%Y-%m-%d"))
+        # 4. Transaktionen verarbeiten
+        transaktionen_liste = []
+        # Wir kombinieren die first_row mit dem Rest des Readers
+        alle_zeilen = [first_row] + list(csv_reader)
 
-            transaction = TransaktionDTO(   
-                IBAN_Auftragskonto=row.get("IBAN Auftragskonto"),
-                IBAN_Zahlungsbeteiligter=row.get("IBAN Zahlungsbeteiligter"),
-                Name_Zahlungsbeteiligter=row.get("Name Zahlungsbeteiligter"),
-                Verwendungszweck=row.get("Verwendungszweck"),
-                Betrag=float(row.get("Betrag").replace(",", ".")),
-                Transaktions_Datum=datum,
-                Buchungsart_ID=db.get_id_by_buchungsart(row.get("Buchungstext")).ID,
-                Bemerkung=""
-            )
+        for zeile in alle_zeilen:
+            try:
+                # Buchungsart verarbeiten
+                buchungstext = zeile.get("Buchungstext")
+                buchungsart_eintrag = db.get_id_by_buchungsart(buchungstext)
+                
+                if buchungsart_eintrag is None:
+                    db.execute_insert_dtos(BuchungsartDTO(Buchungsart=buchungstext))
+                    buchungsart_id = db.get_id_by_buchungsart(buchungstext).ID
+                else:
+                    buchungsart_id = buchungsart_eintrag.ID
 
-            # Saldo nach Buchung berechnen: aktueller Saldo des Kontos + Betrag der Transaktion
-            konto:KontoDTO = db.get_konto_by_iban(transaction.IBAN_Auftragskonto)
-            konto.Saldo += transaction.Betrag
-            transaction.Saldo_nach_Buchung = konto.Saldo
-            db.execute_update_dtos(konto)
-            list_data.append(transaction)
+                # Datum konvertieren
+                datum_objekt = datetime.strptime(zeile.get("Valutadatum"), "%d.%m.%Y")
+                datum_iso_format = datum_objekt.strftime("%Y-%m-%d")
 
-        db.execute_insert_dtos(list_data)
+                # Betrag bereinigen (1.200,50 -> 1200.50)
+                roher_betrag = zeile.get("Betrag").replace(".", "").replace(",", ".")
+                betrag = float(roher_betrag)
 
+                # Saldo berechnen
+                aktuelles_konto.Saldo += betrag
+                
+                # Transaktions-DTO erstellen
+                neue_transaktion = TransaktionDTO(
+                    IBAN_Auftragskonto=iban_auftragskonto,
+                    IBAN_Zahlungsbeteiligter=zeile.get("IBAN Zahlungsbeteiligter"),
+                    Name_Zahlungsbeteiligter=zeile.get("Name Zahlungsbeteiligter"),
+                    Verwendungszweck=zeile.get("Verwendungszweck"),
+                    Betrag=betrag,
+                    Transaktions_Datum=datum_iso_format,
+                    Saldo_nach_Buchung=round(aktuelles_konto.Saldo, 2),
+                    Buchungsart_ID=buchungsart_id,
+                    Bemerkung=""
+                )
+                transaktionen_liste.append(neue_transaktion)
 
-    return list_data
+            except (ValueError, TypeError, KeyError):
+                return -3  # Datenfehler innerhalb der CSV
+
+        # 5. Speichern
+        db.execute_update_dtos(aktuelles_konto)
+        db.execute_insert_dtos(transaktionen_liste)
+
+        return 0  # Erfolg
+
+    except Exception as e:
+        print(f"Kritischer Fehler: {e}")
+        return -2  # Allgemeiner Import-Fehler
 
 #prüfen ob Sonderzeichen in einem String vorhanden sind
 def got_special_characters(text):
