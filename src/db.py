@@ -31,8 +31,6 @@ def execute_select_dto_list(sql:str,dto_class,wheres:dict) -> list[object]: # sq
         connection.row_factory = sqlite3.Row            # wird von sqlight3 benötigt das man spaltennamen im cursor mit cursor.description rauslesen kann
         with closing(connection.cursor()) as cursor:
             cursor.execute(sql,wheres)
-            print(sql)
-            print(wheres)
             column_names = [col[0] for col in cursor.description] # Spaltennamen aus dem select holen
             results = []
             for row in cursor.fetchall(): # alle daten vom select holen
@@ -560,13 +558,7 @@ def resource_path(relative_path):
 __db_path = resource_path("Database.db")
 
 if __name__ == "__main__":
-    # __create_Database()
-    # # __insert_test_data()
-    # konten = get_konto_by_user_id(2)
-    # for konto in konten:
-    #     konto.Konto_Name = "Sparbuch"
-    #     konto.Kontoinhaber_ID = 8
-    #     execute_update_dtos(konto)
+
     # kategorie:list[KategorieDTO] = [KategorieDTO(Bezeichnung="Essen", Kontoinhaber_ID=8),
     #                                     KategorieDTO(Bezeichnung="Miete", Kontoinhaber_ID=8),
     #                                     KategorieDTO(Bezeichnung="Einkauf", Kontoinhaber_ID=8),
@@ -615,17 +607,14 @@ if __name__ == "__main__":
         # TransaktionDTO(None, "DE75512108001245126199", "DE885000000021223341", "tEdeka Center", "Getraenke", -12.50, 5108.20, "2026-03-14", 3, 14, "Einkauf")
     # ]
     # execute_insert_dtos(test_daten)
-    # user = get_user_by_email("test@web.de")
-    # user.vorname = "Kevin"
-    # user.nachname = "Mustermax"
-    # execute_update_dtos(user)
-    # users = get_user_by_email("kevin.mustermax@web.de")
-    # for user in users:
-    #     print(user)
-    # kategorien = get_kategorien_by_kontoinhaber_id(8)
-    # for kategorie in kategorien:
-    #     print(kategorie)
-    # konten = get_konto_by_user_id(5)
-    # for konto in konten:
-    #     print(konto)
+    # wheres = {}
+    # sql = "SELECT * FROM Transaktion"
+    # transaktionen = execute_select_dto_list(sql,TransaktionDTO,wheres)
+    # for t in transaktionen:
+    #     execute_delete_dtos(t)
+    # wheres = {}
+    # sql = "SELECT * FROM Kategorie"
+    # kategorie = execute_select_dto_list(sql,KategorieDTO,wheres)
+    # for k in kategorie:
+    #     execute_delete_dtos(k)
     pass
