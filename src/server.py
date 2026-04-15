@@ -190,12 +190,10 @@ def data_edit():
     buchungsarten = db.get_all_buchungsarten()
     data = []
 
-    datum_bis = session["data_edit_datum_bis"] if "data_edit_datum_bis" in session else None
-    print(session["data_edit_datum_bis"])
     if "filter_data" in session:
         filter_data = session["filter_data"]
     else:
-        filter_data = TransaktionDTO(
+        filter_data = EditFilterDTO(
             ID="", 
             IBAN_Auftragskonto="", 
             IBAN_Zahlungsbeteiligter="", 
@@ -203,30 +201,29 @@ def data_edit():
             Verwendungszweck="", 
             Betrag="", 
             Saldo_nach_Buchung="",
+            Transaktions_Datum_Von="",
+            Transaktions_Datum_Bis="",
             Buchungsart_ID="", 
             Bemerkung=""
         )
 
     if  request.form.get("btn_filter_transaktion") == "filter":
 
-        datum_bis = request.form.get("txt_transaktionsdatum_bis_filter")
-
-        filter_data = TransaktionDTO(   
+        filter_data = EditFilterDTO(   
                 ID=request.form.get("txt_id_filter"),
                 IBAN_Zahlungsbeteiligter=request.form.get("txt_iban_zahlungsbeteiligter_filter"),
                 Name_Zahlungsbeteiligter=request.form.get("txt_name_zahlungsbeteiligter_filter"),
                 Verwendungszweck=request.form.get("txt_verwendungszweck_filter"),
-                Betrag=float(request.form.get("txt_betrag_filter").replace(",", ".") if request.form.get("txt_betrag_filter") else 0.00),
-                Saldo_nach_Buchung=float(request.form.get("txt_saldo_nach_buchung_filter").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_filter") else 0.00),
-                Transaktions_Datum= request.form.get("txt_transaktionsdatum_von_filter"),
-
+                Betrag=request.form.get("txt_betrag_filter").replace(",", ".") if request.form.get("txt_betrag_filter") else "",
+                Saldo_nach_Buchung=request.form.get("txt_saldo_nach_buchung_filter").replace(",", ".") if request.form.get("txt_saldo_nach_buchung_filter") else "",
+                Transaktions_Datum_Von= request.form.get("txt_transaktionsdatum_von_filter"),
+                Transaktions_Datum_Bis=request.form.get("txt_transaktionsdatum_bis_filter"),
                 Buchungsart_ID=db.get_id_by_buchungsart(request.form.get("txt_buchungsart_filter")).ID if request.form.get("txt_buchungsart_filter") else None,
                 Bemerkung=request.form.get("txt_bemerkung_filter")
         )
         session["filter_data"] = filter_data
-        session["data_edit_datum_bis"] = datum_bis
         
-        data = db.get_filtered_transaktionen(filter_data, session.get("user_id"), datum_bis, selected_konten, selected_kategorien)
+        data = db.get_filtered_transaktionen(filter_data, session.get("user_id"), selected_konten, selected_kategorien)
         
     return render_template("data_edit/data_edit.html",
                             user_name=session.get("name"),
@@ -236,7 +233,6 @@ def data_edit():
                             selected_konten=selected_konten,
                             buchungsarten=buchungsarten,
                             filter_data=filter_data,
-                            Transaktions_Datum_Bis=datum_bis if request.form.get("txt_transaktionsdatum_bis_filter") else None,
                             data=data)
 
 # data_edit

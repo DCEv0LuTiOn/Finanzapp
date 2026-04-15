@@ -222,7 +222,7 @@ def get_bank_by_blz(blz) -> BankDTO:
     bank_dto = execute_select_dto(sql,BankDTO,wheres)
     return bank_dto
 
-def get_filtered_transaktionen(transaktion_filter: TransaktionDTO, user_id: int, datumBis: str, selected_konten: list[str] = None, selected_kategorien: list[str] = None) -> list[DataInputDTOView]:
+def get_filtered_transaktionen(transaktion_filter: EditFilterDTO, user_id: int, selected_konten: list[str] = None, selected_kategorien: list[str] = None) -> list[DataInputDTOView]:
     wheres = {"user_id": user_id}
     if len(selected_konten) == 0:
         return []
@@ -298,19 +298,21 @@ def get_filtered_transaktionen(transaktion_filter: TransaktionDTO, user_id: int,
         sql += " AND t.Bemerkung LIKE :Bemerkung"
         wheres["Bemerkung"] = f"%{transaktion_filter.Bemerkung.strip()}%"
 
-    # 3. Datums-Logik (Von - Bis)
-    datum_von = transaktion_filter.Transaktions_Datum
-    has_von = datum_von and str(datum_von).strip() != ""
-    has_bis = datumBis and str(datumBis).strip() != "" and datumBis != "0000-00-00"
+    # 3. Datums-Logik (Von - Bis / Open-End)
+    datum_von = transaktion_filter.Transaktions_Datum_Von
+    datum_bis = transaktion_filter.Transaktions_Datum_Bis
 
-    if has_von and has_bis:
-        sql += " AND (date(t.Transaktions_Datum) BETWEEN :Transaktions_Datum_von AND :Transaktions_Datum_bis)"
-        wheres["Transaktions_Datum_von"] = datum_von
-        wheres["Transaktions_Datum_bis"] = datumBis
-    elif has_von:
-        sql += " AND date(t.Transaktions_Datum) = :Transaktions_Datum_von"
-        wheres["Transaktions_Datum_von"] = datum_von
+    # Prüfung für "Datum Von" (Größer oder gleich)
+    if datum_von and str(datum_von).strip() != "":
+        sql += " AND date(t.Transaktions_Datum) >= :datum_von"
+        wheres["datum_von"] = datum_von
 
+    # Prüfung für "Datum Bis" (Kleiner oder gleich)
+    if datum_bis and str(datum_bis).strip() != "" and datum_bis != "0000-00-00":
+        sql += " AND date(t.Transaktions_Datum) <= :datum_bis"
+        wheres["datum_bis"] = datum_bis
+
+    # 3. Sortierung
     sql += " ORDER BY t.Transaktions_Datum DESC"
 
     print(sql) # Debug-Ausgabe des finalen SQL-Befehls
