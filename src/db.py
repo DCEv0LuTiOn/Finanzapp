@@ -227,6 +227,7 @@ def get_filtered_transaktionen(transaktion_filter: TransaktionDTO, user_id: int,
     if len(selected_konten) == 0:
         return []
     
+    
     # Basis-SQL
     sql = """
         SELECT t.ID, t.IBAN_Auftragskonto, t.IBAN_Zahlungsbeteiligter, t.Name_Zahlungsbeteiligter, 

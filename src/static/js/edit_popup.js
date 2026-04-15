@@ -9,6 +9,7 @@ function openEditPopup(id, iban, name, zweck, betrag, datum, artId, bemerkung, k
     document.getElementById('edit-name-beteiligter').value = (name !== 'None' && name !== '') ? name : '';
     document.getElementById('edit-zweck').value = (zweck !== 'None' && zweck !== '') ? zweck : '';
     document.getElementById('edit-betrag').value = betrag;
+    datum = datum.split(".").reverse().join("-")
     document.getElementById('edit-datum').value = datum;
     document.getElementById('edit-bemerkung').value = (bemerkung !== 'None' && bemerkung !== '') ? bemerkung : '';
     
