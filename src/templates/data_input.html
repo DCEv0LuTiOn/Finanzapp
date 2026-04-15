@@ -22,7 +22,7 @@
                 <form class="form-box" method="post">
                     <h3>Transaktion einfügen:</h3>                    
                     {% if status %}
-                        {% if status == 0 %}
+                        {% if status == 1 %}
                             <div class="correct-box">
                                 {{ transaction_msg }}
                             </div>
@@ -31,7 +31,7 @@
                                 {{ transaction_msg }}
                             </div>
                         {% endif %}
-                    {% endif %}
+                    {% endif %} 
                     <!--<label>ID:</label>-->
                     <!--<input type="text" name="id">-->
                     <div class="table-input">

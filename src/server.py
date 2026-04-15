@@ -198,7 +198,7 @@ def data_input_post():
 
         # Status-Messages für den Upload definieren
         messages = {
-            0: "CSV-Datei erfolgreich hochgeladen und Daten in die Datenbank eingefügt!",
+            1: "CSV-Datei erfolgreich hochgeladen und Daten in die Datenbank eingefügt!",
             -1: "Es wurde keine Datei ausgewählt. Bitte wählen Sie eine CSV-Datei aus.",
             -2: "Ungültiges Dateiformat oder fehlerhafter Import! Bitte prüfen Sie die Datei.",
             -3: "Die Datei enthält ungültige Daten (z.B. falsches Datum oder Betrag).",
@@ -837,7 +837,7 @@ def extract_data(file) -> int:
         db.execute_update_dtos(aktuelles_konto)
         db.execute_insert_dtos(transaktionen_liste)
 
-        return 0  # Erfolg
+        return 1  # Erfolg
 
     except Exception as e:
         print(f"Kritischer Fehler: {e}")
