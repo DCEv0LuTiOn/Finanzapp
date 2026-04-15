@@ -127,7 +127,6 @@ def menue():
     selected_konten = filter_daten["selected_konten"]
     
     transaktionen = db.get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(selected_konten, selected_kategorien, start_date, end_date)
-    print(len(transaktionen))
     ausgaben_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag < 0])
     einnahmen_summe = sum([transaktion.Betrag for transaktion in transaktionen if transaktion.Betrag > 0])
     kontostand = sum([konto.Saldo for konto in konten if konto.IBAN in selected_konten])
@@ -499,8 +498,6 @@ def input_transaction():
         #Plausibilitätsprüfungen für die Transaktionsdaten
         #Auftragskonto darf nicht leer sein
         error = None
-
-        print( betrag_valid(str.strip(request.form.get("txt_betrag_insert").replace(",", "."))))
 
         if str.strip(request.form.get("ddm_iban_auftragskonto_insert")) == "":
             error = "IBAN Auftragskonto darf nicht leer sein!"

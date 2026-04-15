@@ -71,8 +71,6 @@ def execute_insert_dtos(dtos:object | list[object]):
 
                 # sql mit Named Parametern (z.b. insert table(name,email) values (:Name, :Email))
                 sql = f"INSERT INTO {table_name} ({', '.join(fields_to_insert)}) VALUES ({', '.join([":" + p for p in fields_to_insert])})"
-                print(sql)
-                print(values)
                 connection.execute(sql, values)
             connection.commit()
         except sqlite3.DatabaseError as e:
@@ -314,8 +312,6 @@ def get_filtered_transaktionen(transaktion_filter: EditFilterDTO, user_id: int, 
 
     # 3. Sortierung
     sql += " ORDER BY t.Transaktions_Datum DESC"
-
-    print(sql) # Debug-Ausgabe des finalen SQL-Befehls
     
     return execute_select_dto_list(sql, DataInputDTOView, wheres)
 
@@ -364,8 +360,6 @@ def get_transaktionen_by_IBANs_and_Kategorie_IDs_and_date(ibans:list[str], kateg
         'start_date': start_date,
         'end_date': end_date
     }
-
-    print(sql) # Debug-Ausgabe des finalen SQL-Befehls
 
     return execute_select_dto_list(sql, TransaktionDTO, wheres)
 
